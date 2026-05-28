@@ -10,7 +10,6 @@ export const getApiBaseUrl = (): string => {
   // PRODUCTION: Check expo config first (from app.config.js)
   const expoBackendUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (expoBackendUrl && !__DEV__) {
-    
     return expoBackendUrl;
   }
 
@@ -18,13 +17,11 @@ export const getApiBaseUrl = (): string => {
   const envBackendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envBackendUrl) {
     const trimmed = envBackendUrl.trim();
-    
     return trimmed;
   }
 
   // Development mode - use LOCAL backend
   if (__DEV__) {
-    
     return "http://localhost:5000";
   }
 
@@ -34,7 +31,6 @@ export const getApiBaseUrl = (): string => {
   }
 
   // Production fallback
-  
   return "https://astrobar-app-production-4821.up.railway.app";
 };
 
