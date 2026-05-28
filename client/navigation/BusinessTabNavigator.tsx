@@ -24,9 +24,10 @@ const Tab = createBottomTabNavigator();
 function ManagementStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* 🚀 CAMBIO 1: Pasamos BusinessSettings arriba de todo para que abra directo el formulario del bar */}
+      <Stack.Screen name="BusinessSettings" component={BusinessManageScreen} />
       <Stack.Screen name="BusinessPromotions" component={BusinessPromotionsPanel} />
       <Stack.Screen name="BusinessMenu" component={BusinessMenuScreen} />
-      <Stack.Screen name="BusinessSettings" component={BusinessManageScreen} />
       <Stack.Screen name="PromotionTransactions" component={PromotionTransactionsScreen} />
       <Stack.Screen name="CreateFlashPromotion" component={CreateFlashPromotionScreen} />
       <Stack.Screen name="CreateCommonPromotion" component={CreateCommonPromotionScreen} />
@@ -39,6 +40,8 @@ export default function BusinessTabNavigator() {
 
   return (
     <Tab.Navigator
+      {/* 🚀 CAMBIO 2: Agregamos initialRouteName para obligar a la app a saltar el inicio roto */}
+      initialRouteName="BusinessManagement"
       screenOptions={{
         headerShown: true,
         headerStyle: {
