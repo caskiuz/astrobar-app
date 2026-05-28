@@ -40,10 +40,9 @@ export default function BusinessTabNavigator() {
 
   return (
     <Tab.Navigator
-      {/* 🚀 CAMBIO 2: Agregamos initialRouteName para obligar a la app a saltar el inicio roto */}
-      initialRouteName="BusinessManagement"
-      screenOptions={{
-        headerShown: true,
+  initialRouteName="BusinessManagement"
+  screenOptions={{
+    headerShown: true,
         headerStyle: {
           backgroundColor: theme.background,
         },
