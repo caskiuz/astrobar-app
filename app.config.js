@@ -1,10 +1,11 @@
 export default {
   expo: {
     name: "AstroBar",
-    slug: "astrobar-app",
+    slug: "astrobar-v2",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/astrobarlogo.jpg",
+    /* 🚀 CAMBIO 1: Cambiado a icon.png */
+    icon: "./assets/icon.png",
     scheme: "astrobar",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -12,13 +13,14 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.astrobar.app",
       infoPlist: {
-        NSLocationWhenInUseUsageDescription: "Necesitamos tu ubicación para mostrarte bares cercanos y promociones disponibles."
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte bares cercanos y promociones disponibles."
       }
     },
     android: {
       adaptiveIcon: {
         backgroundColor: "#8B5CF6",
-        foregroundImage: "./assets/astrobarlogo.jpg"
+        /* 🚀 CAMBIO 2: Cambiado a icon.png */
+        foregroundImage: "./assets/icon.png"
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
@@ -31,13 +33,15 @@ export default {
     },
     web: {
       output: "single",
-      favicon: "./assets/astrobarlogo.jpg"
+      /* 🚀 CAMBIO 3: Cambiado a icon.png */
+      favicon: "./assets/icon.png"
     },
     plugins: [
       [
         "expo-splash-screen",
         {
-          "image": "./assets/astrobarlogo.jpg",
+          /* 🚀 CAMBIO 4: Cambiado a icon.png para la pantalla de carga */
+          "image": "./assets/icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#8B5CF6"
         }
@@ -48,7 +52,7 @@ export default {
       [
         "expo-location",
         {
-          locationAlwaysAndWhenInUsePermission: "Necesitamos tu ubicación para mostrarte bares cercanos y calcular rutas."
+          "locationAlwaysAndWhenInUsePermission": "Necesitamos tu ubicación para mostrarte bares cercanos y calcular rutas."
         }
       ]
     ],
@@ -57,10 +61,9 @@ export default {
     },
     extra: {
       eas: {
-        projectId: "8c58541f-bf02-4e36-bcf9-a2e64b126a5b"
+        projectId: "f17c46e5-f38a-4915-b035-c641e2c3aa0d"
       },
       EXPO_PUBLIC_BACKEND_URL: "https://astrobar-app-production-4821.up.railway.app"
-    },
-    owner: "caskiuzs-organization"
+    }
   }
 };
