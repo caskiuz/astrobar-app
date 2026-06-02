@@ -25,7 +25,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Trust proxy - required for rate limiting behind Replit's proxy
+// Trust proxy - required for rate limiting behind Replit's / Railway's proxy
 app.set('trust proxy', 1);
 
 // Security middleware - disable CSP for SPA
@@ -38,26 +38,23 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting (Aumentado en producción para evitar bloqueos por uso normal)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 100 : 10000,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 2000 : 10000, // Subido de 100 a 2000
   message: 'Too many requests from this IP'
 });
 app.use('/api/', limiter);
 
 // Request logging
 app.use((req, res, next) => {
-  
-  
   const originalSend = res.send;
   res.send = function(data) {
     if (res.statusCode >= 400) {
-      
+      // Log errors if needed
     }
     return originalSend.call(this, data);
   };
-  
   next();
 });
 
@@ -89,79 +86,56 @@ app.use(express.static(staticBuildPath, {
 // API routes
 app.use('/api', apiRoutes);
 
-// Wallet routes removed
-
 // Admin Panel routes
 import adminPanelRoutes from './routes/adminPanelRoutes';
-
 app.use('/api/admin', adminPanelRoutes);
 
 // FASE 2 routes
 import phase2Routes from './routes/phase2Routes';
-
 app.use('/api/phase2', phase2Routes);
 
 // Admin Complete routes
 import adminCompleteRoutes from './routes/adminCompleteRoutes';
-
 app.use('/api/admin-complete', adminCompleteRoutes);
 
 // Public routes
 import publicRoutes from './routes/publicRoutes';
-
 app.use('/api/public', publicRoutes);
 
 // Order routes
 import orderRoutes from './routes/orderRoutes';
-
 app.use('/api/orders', orderRoutes);
 
 // Upload routes
 import uploadRoutes from './routes/uploadRoutes';
-
 app.use('/api/upload', uploadRoutes);
 
 // Mercado Pago routes
 import mercadopagoRoutes from './routes/mercadopagoRoutes';
-
 app.use('/api/mp', mercadopagoRoutes);
 
 // Customer Mercado Pago routes
 import customerMercadopagoRoutes from './routes/customerMercadopagoRoutes';
-
 app.use('/api/customer-mp', customerMercadopagoRoutes);
 
 // Favorites routes
 import favoriteRoutes from './routes/favoriteRoutes';
-
 app.use('/api/favorites', favoriteRoutes);
 
 // Migration routes (temporal)
 import migrationRoutes from './routes/migrationRoutes';
-
 app.use('/api/migrations', migrationRoutes);
 
 // Webhook routes
 import webhookRoutes from './routes/webhookRoutes';
-
 app.use('/webhooks', webhookRoutes);
-
-// Favorites routes removed
-
-// Stripe Connect routes removed
-
-// Secure payment routes removed
-
-// Development routes removed
 
 // Geolocation routes
 import geolocationRoutes from './routes/geolocationRoutes';
-
 app.use('/api/geolocation', geolocationRoutes);
 
 // Directions routes
 import directionsRoutes from './routes/directionsRoutes';
-
 app.use('/api/directions', directionsRoutes);
 
 // Health check
@@ -191,44 +165,3 @@ if (isProduction) {
     });
   });
 }
-
-// Error handling
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error('❌ ERROR:', err.message);
-  console.error('Stack:', err.stack);
-  res.status(500).json({ error: 'Internal server error', message: err.message });
-});
-
-// 404 handler
-app.use((req, res) => {
-  
-  res.status(404).json({ error: `Route not found: ${req.method} ${req.originalUrl}` });
-});
-
-// Start server
-app.listen(PORT, async () => {
-  console.log('🚀 Starting AstroBar API...');
-  console.log(`📍 PORT: ${PORT}`);
-  console.log(`🌍 NODE_ENV: ${process.env.NODE_ENV}`);
-  
-  try {
-    // Initialize audit logs table
-    console.log('📝 Initializing audit logs table...');
-    const { createAuditTable } = await import('./routes/auditRoutes');
-    await createAuditTable();
-    console.log('✅ Audit logs table initialized');
-    
-    // Start business hours cron job
-    console.log('⏰ Starting business hours cron job...');
-    const { startBusinessHoursCron } = await import('./businessHoursCron');
-    startBusinessHoursCron();
-    console.log('✅ Business hours cron job started');
-    
-    console.log('✅ AstroBar API is running!');
-    console.log(`🌙 Listening on http://localhost:${PORT}`);
-  } catch (error: any) {
-    console.error('❌ STARTUP ERROR:', error.message);
-    console.error('Stack:', error.stack);
-    process.exit(1);
-  }
-});
