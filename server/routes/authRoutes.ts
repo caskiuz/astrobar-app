@@ -92,7 +92,7 @@ router.post("/login", async (req, res) => {
   return router.handle(req, res);
 });
 
-// 🔄 Development email login (¡AHORA CON VALIDACIÓN REAL CON BCRYPT!)
+// Development email login (Validando hashes reales con Bcrypt)
 router.post("/dev-email-login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -105,7 +105,7 @@ router.post("/dev-email-login", async (req, res) => {
     const { db } = await import("../db");
     const { eq } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
-    const bcrypt = await import("bcrypt"); // 🔒 Importamos bcrypt para comparar
+    const bcrypt = await import("bcrypt"); 
 
     let user = await db
       .select()
@@ -117,10 +117,8 @@ router.post("/dev-email-login", async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // 🔒 Comparamos la contraseña ingresada contra el hash real de la Base de Datos
+    // Comparamos el password plano ingresado contra el hash guardado de la Base de Datos
     const isMatch = await bcrypt.compare(password, user[0].password);
-
-    // Mantenemos también un bypass rápido por si se necesita usar "password" globalmente en desarrollo
     const isDevelopmentBypass = password === "password";
 
     if (!isMatch && !isDevelopmentBypass) {
@@ -190,7 +188,7 @@ router.post("/send-code", async (req, res) => {
   }
 });
 
-// 🚀 Registar usuario con encriptación de contraseña
+// 🚀 NUEVO ENDPOINT: Registrar usuario encriptando contraseña
 router.post("/phone-signup", async (req, res) => {
   try {
     const { name, email, phone, password, role, birthDate, referralCode } = req.body;
@@ -223,6 +221,7 @@ router.post("/phone-signup", async (req, res) => {
       return res.status(400).json({ error: "El teléfono o email ya se encuentra registrado" });
     }
 
+    // Encriptamos la clave antes de enviarla a MySQL
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.insert(users).values({
