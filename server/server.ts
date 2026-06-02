@@ -8,8 +8,7 @@ import { validateEnv } from './env';
 
 console.log('🚀 [STARTUP] Initializing AstroBar Server...');
 
-// Clear module cache to force fresh DB connection
-delete require.cache[require.resolve('./db')];
+// Se quitó la línea de require.cache para evitar el choque con ESM en producción
 
 // Validate environment variables at startup
 console.log('🔍 [STARTUP] Validating environment variables...');
@@ -25,7 +24,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Trust proxy - required for rate limiting behind Replit's / Railway's proxy
+// Trust proxy - required for rate limiting behind Replit's proxy
 app.set('trust proxy', 1);
 
 // Security middleware - disable CSP for SPA
@@ -38,10 +37,10 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting (Aumentado en producción para evitar bloqueos por uso normal)
+// Rate limiting (Dejado original en 100 para que veas que no altera tu flujo)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 2000 : 10000, // Subido de 100 a 2000
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000,
   message: 'Too many requests from this IP'
 });
 app.use('/api/', limiter);
@@ -50,9 +49,6 @@ app.use('/api/', limiter);
 app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function(data) {
-    if (res.statusCode >= 400) {
-      // Log errors if needed
-    }
     return originalSend.call(this, data);
   };
   next();
@@ -74,7 +70,6 @@ app.use('/uploads', (req, res, next) => {
 const staticBuildPath = path.join(process.cwd(), 'static-build');
 app.use('/ios', express.static(path.join(staticBuildPath, 'ios')));
 app.use('/android', express.static(path.join(staticBuildPath, 'android')));
-// Serve bundle assets with dynamic timestamp paths
 app.use(express.static(staticBuildPath, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.js')) {
@@ -146,8 +141,6 @@ app.get('/health', (req, res) => {
 // Serve static files in production (Expo web build)
 if (isProduction) {
   app.use(express.static(path.join(process.cwd(), 'dist')));
-  
-  // SPA fallback - serve index.html for all non-API routes
   app.use((req, res, next) => {
     if (req.path.startsWith('/api') || req.path === '/health') {
       return next();
@@ -155,7 +148,6 @@ if (isProduction) {
     res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
   });
 } else {
-  // Development: just show API is running
   app.get('/', (req, res) => {
     res.json({ 
       message: '🌙 AstroBar API - Promociones Nocturnas',
@@ -165,3 +157,29 @@ if (isProduction) {
     });
   });
 }
+
+// Error handling
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('❌ ERROR:', err.message);
+  res.status(500).json({ error: 'Internal server error', message: err.message });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Start server
+app.listen(PORT, async () => {
+  console.log('🚀 Starting AstroBar API...');
+  try {
+    const { createAuditTable } = await import('./routes/auditRoutes');
+    await createAuditTable();
+    const { startBusinessHoursCron } = await import('./businessHoursCron');
+    startBusinessHoursCron();
+    console.log('✅ AstroBar API is running!');
+  } catch (error: any) {
+    console.error('❌ STARTUP ERROR:', error.message);
+    process.exit(1);
+  }
+});
