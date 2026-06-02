@@ -186,5 +186,81 @@ router.post("/send-code", async (req, res) => {
   }
 });
 
-// (El resto de signup y biometric se mantiene igual...)
+// 🚀 NUEVO ENDPOINT: Registrar usuario desde la App Mobile/Web
+router.post("/phone-signup", async (req, res) => {
+  try {
+    const { name, email, phone, password, role, birthDate, referralCode } = req.body;
+
+    if (!name || !phone || !password) {
+      return res.status(400).json({ error: "Nombre, teléfono y contraseña son requeridos" });
+    }
+
+    const { users } = await import("@shared/schema-mysql");
+    const { db } = await import("../db");
+    const { eq, or } = await import("drizzle-orm");
+    const jwt = await import("jsonwebtoken");
+
+    // Normalizar el teléfono para verificar duplicados
+    const phoneDigits = phone.replace(/[^\d]/g, '');
+    const normalizedPhone = phoneDigits.startsWith('54') ? `+${phoneDigits}` : `+54${phoneDigits}`;
+
+    // Verificar si el usuario ya existe por teléfono o email
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          eq(users.phone, normalizedPhone),
+          email ? eq(users.email, email) : undefined
+        )
+      )
+      .limit(1);
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({ error: "El teléfono o email ya se encuentra registrado" });
+    }
+
+    // Insertar el nuevo usuario en la base de datos
+    await db.insert(users).values({
+      name,
+      email: email || null,
+      phone: normalizedPhone,
+      password, // Almacenado directo según lógica del proyecto actual
+      role: role || "customer",
+      birthDate: birthDate ? new Date(birthDate).toISOString() : null,
+      referralCode: referralCode || null,
+      phoneVerified: false,
+    });
+
+    // Obtener el registro recién creado
+    const newUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.phone, normalizedPhone))
+      .limit(1);
+
+    // Generar Token JWT para login automático inmediato
+    const token = jwt.default.sign(
+      { id: newUser[0].id, phone: newUser[0].phone, role: newUser[0].role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: newUser[0].id,
+        name: newUser[0].name,
+        email: newUser[0].email,
+        phone: newUser[0].phone,
+        role: newUser[0].role,
+        phoneVerified: newUser[0].phoneVerified,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
