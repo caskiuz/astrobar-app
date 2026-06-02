@@ -89,7 +89,6 @@ router.post("/phone-login", async (req, res) => {
 
 // Login alias for compatibility
 router.post("/login", async (req, res) => {
-  // Simplificado para usar la lógica de phone-login directamente
   return router.handle(req, res);
 });
 
@@ -117,7 +116,6 @@ router.post("/dev-email-login", async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // AHORA ACEPTA "password" O "123456"
     if (password !== "password" && password !== "123456") {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
@@ -162,7 +160,7 @@ router.post("/send-code", async (req, res) => {
 
     if (user.length === 0) return res.json({ success: false, userNotFound: true });
 
-    const code = "123456"; // Código fijo para tests
+    const code = "123456"; 
     await db.update(users).set({ verificationCode: code }).where(eq(users.id, user[0].id));
 
     if (process.env.TWILIO_ACCOUNT_SID) {
@@ -175,7 +173,6 @@ router.post("/send-code", async (req, res) => {
           to: normalizedPhone
         });
       } catch (twilioError) {
-        // BYPASS: Si Twilio falla, no rompemos el proceso.
         console.error("Twilio falló pero el código quedó en la DB:", twilioError);
       }
     }
@@ -186,7 +183,7 @@ router.post("/send-code", async (req, res) => {
   }
 });
 
-// 🚀 NUEVO ENDPOINT: Registrar usuario desde la App Mobile/Web
+// 🚀 ENDPOINT ACTUALIZADO: Registrar usuario con encriptación de contraseña
 router.post("/phone-signup", async (req, res) => {
   try {
     const { name, email, phone, password, role, birthDate, referralCode } = req.body;
@@ -199,6 +196,7 @@ router.post("/phone-signup", async (req, res) => {
     const { db } = await import("../db");
     const { eq, or } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
+    const bcrypt = await import("bcrypt"); // 🔒 Importamos bcrypt para hashear
 
     // Normalizar el teléfono para verificar duplicados
     const phoneDigits = phone.replace(/[^\d]/g, '');
@@ -220,12 +218,15 @@ router.post("/phone-signup", async (req, res) => {
       return res.status(400).json({ error: "El teléfono o email ya se encuentra registrado" });
     }
 
-    // Insertar el nuevo usuario en la base de datos
+    // 🔒 Encriptamos la contraseña con un factor de costo de 10 saltos (estándar de bcrypt)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insertar el nuevo usuario con la contraseña encriptada
     await db.insert(users).values({
       name,
       email: email || null,
       phone: normalizedPhone,
-      password, // Almacenado directo según lógica del proyecto actual
+      password: hashedPassword, // Guardamos el hash seguro ($2a$10...)
       role: role || "customer",
       birthDate: birthDate ? new Date(birthDate).toISOString() : null,
       referralCode: referralCode || null,
