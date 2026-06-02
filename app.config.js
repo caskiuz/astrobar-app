@@ -43,7 +43,7 @@ export default {
           /* 🚀 CAMBIO 4: Cambiado a icon.png para la pantalla de carga */
           "image": "./assets/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#8B5CF6"
+          "backgroundColor": "#0c0d14"
         }
       ],
       "expo-web-browser",
