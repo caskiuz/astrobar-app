@@ -92,7 +92,7 @@ router.post("/login", async (req, res) => {
   return router.handle(req, res);
 });
 
-// Development email login (FIXED)
+// 🔄 Development email login (¡AHORA CON VALIDACIÓN REAL CON BCRYPT!)
 router.post("/dev-email-login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -105,6 +105,7 @@ router.post("/dev-email-login", async (req, res) => {
     const { db } = await import("../db");
     const { eq } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
+    const bcrypt = await import("bcrypt"); // 🔒 Importamos bcrypt para comparar
 
     let user = await db
       .select()
@@ -116,7 +117,13 @@ router.post("/dev-email-login", async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    if (password !== "password" && password !== "123456") {
+    // 🔒 Comparamos la contraseña ingresada contra el hash real de la Base de Datos
+    const isMatch = await bcrypt.compare(password, user[0].password);
+
+    // Mantenemos también un bypass rápido por si se necesita usar "password" globalmente en desarrollo
+    const isDevelopmentBypass = password === "password";
+
+    if (!isMatch && !isDevelopmentBypass) {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
@@ -183,7 +190,7 @@ router.post("/send-code", async (req, res) => {
   }
 });
 
-// 🚀 ENDPOINT ACTUALIZADO: Registrar usuario con encriptación de contraseña
+// 🚀 Registar usuario con encriptación de contraseña
 router.post("/phone-signup", async (req, res) => {
   try {
     const { name, email, phone, password, role, birthDate, referralCode } = req.body;
@@ -196,13 +203,11 @@ router.post("/phone-signup", async (req, res) => {
     const { db } = await import("../db");
     const { eq, or } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
-    const bcrypt = await import("bcrypt"); // 🔒 Importamos bcrypt para hashear
+    const bcrypt = await import("bcrypt"); 
 
-    // Normalizar el teléfono para verificar duplicados
     const phoneDigits = phone.replace(/[^\d]/g, '');
     const normalizedPhone = phoneDigits.startsWith('54') ? `+${phoneDigits}` : `+54${phoneDigits}`;
 
-    // Verificar si el usuario ya existe por teléfono o email
     const existingUser = await db
       .select()
       .from(users)
@@ -218,29 +223,25 @@ router.post("/phone-signup", async (req, res) => {
       return res.status(400).json({ error: "El teléfono o email ya se encuentra registrado" });
     }
 
-    // 🔒 Encriptamos la contraseña con un factor de costo de 10 saltos (estándar de bcrypt)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insertar el nuevo usuario con la contraseña encriptada
     await db.insert(users).values({
       name,
       email: email || null,
       phone: normalizedPhone,
-      password: hashedPassword, // Guardamos el hash seguro ($2a$10...)
+      password: hashedPassword, 
       role: role || "customer",
       birthDate: birthDate ? new Date(birthDate).toISOString() : null,
       referralCode: referralCode || null,
       phoneVerified: false,
     });
 
-    // Obtener el registro recién creado
     const newUser = await db
       .select()
       .from(users)
       .where(eq(users.phone, normalizedPhone))
       .limit(1);
 
-    // Generar Token JWT para login automático inmediato
     const token = jwt.default.sign(
       { id: newUser[0].id, phone: newUser[0].phone, role: newUser[0].role },
       JWT_SECRET,
