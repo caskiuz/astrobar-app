@@ -930,26 +930,70 @@ router.put("/:id", authenticateToken, requireRole("business_owner"), async (req,
 });
 
 // Update product route
-router.put("/products/:id", authenticateToken, requireRole("business_owner"), async (req, res) => {
+// Update or Create business route (Upsert inteligente para nuevos registros)
+router.put("/:id", authenticateToken, requireRole("business_owner"), async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, category, price, description, image, isAvailable } = req.body;
+    const { id } = req.params; // Puede venir el ID del usuario, "settings", o un ID vacío desde el celular
+    const { name, description, address, phone, image, latitude, longitude } = req.body;
     
-    const updatedProduct = {
-      name,
-      category,
-      price,
-      description,
-      image,
-      isAvailable,
+    console.log('📝 Procesando datos del bar para el usuario:', req.user!.id);
+    
+    // 1. Buscamos si este dueño ya tiene un bar creado en la base de datos
+    const [existingBusiness] = await db
+      .select()
+      .from(businesses)
+      .where(eq(businesses.ownerId, req.user!.id))
+      .limit(1);
+    
+    // 2. SI NO EXISTE EL BAR (Primer ingreso del dueño después de registrarse) -> LO CREAMOS
+    if (!existingBusiness) {
+      console.log('✨ No se encontró un bar previo. Creando el negocio por primera vez...');
+      
+      const [newBusiness] = await db
+        .insert(businesses)
+        .values({
+          ownerId: req.user!.id,
+          name: name || "Mi Nuevo Bar", // Nombre por defecto si viene vacío
+          description: description || "",
+          address: address || "",
+          phone: phone || "",
+          image: image || "",
+          latitude: latitude !== undefined ? parseFloat(latitude) : null,
+          longitude: longitude !== undefined ? parseFloat(longitude) : null,
+          isActive: true, // Lo dejamos activo por defecto para que aparezca en el mapa
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning(); // Dependiendo de tu config de Drizzle, .returning() nos da el objeto creado
+
+      console.log('✅ Bar creado exitosamente con ID:', newBusiness.id);
+      return res.json({ success: true, business: newBusiness, message: "Bar creado correctamente" });
+    }
+    
+    // 3. SI YA EXISTÍA EL BAR -> LO ACTUALIZAMOS (Flujo normal de edición posterior)
+    console.log('🔄 El bar ya existe (ID:', existingBusiness.id, '). Actualizando datos...');
+    
+    const updatedBusiness = {
+      name: name || existingBusiness.name,
+      description: description || existingBusiness.description,
+      address: address || existingBusiness.address,
+      phone: phone || existingBusiness.phone,
+      image: image || existingBusiness.image,
+      latitude: latitude !== undefined ? parseFloat(latitude) : existingBusiness.latitude,
+      longitude: longitude !== undefined ? parseFloat(longitude) : existingBusiness.longitude,
       updatedAt: new Date()
     };
     
-    await db.update(products).set(updatedProduct).where(eq(products.id, id));
-    res.json({ success: true, product: updatedProduct });
+    await db
+      .update(businesses)
+      .set(updatedBusiness)
+      .where(eq(businesses.id, existingBusiness.id));
+    
+    return res.json({ success: true, business: updatedBusiness, message: "Bar actualizado correctamente" });
+
   } catch (error: any) {
-    console.error('Update product error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error en el guardado/creación del bar:', error);
+    return res.status(500).json({ error: error.message });
   }
 });
 
