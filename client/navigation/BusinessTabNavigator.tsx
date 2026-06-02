@@ -18,7 +18,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { AstroBarColors } from "@/constants/theme";
 
 const Stack = createNativeStackNavigator();
-
 const Tab = createBottomTabNavigator();
 
 function ManagementStack() {
@@ -40,9 +39,9 @@ export default function BusinessTabNavigator() {
 
   return (
     <Tab.Navigator
-  initialRouteName="BusinessManagement"
-  screenOptions={{
-    headerShown: true,
+      initialRouteName="BusinessManagement"
+      screenOptions={{
+        headerShown: true,
         headerStyle: {
           backgroundColor: theme.background,
         },
@@ -87,7 +86,6 @@ export default function BusinessTabNavigator() {
           ),
         }}
       />
-
       <Tab.Screen
         name="BusinessProfile"
         component={ProfileStackNavigator}
