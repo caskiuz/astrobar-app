@@ -63,8 +63,9 @@ export async function apiRequest(
   route: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const baseUrl = getApiUrl();
-  const url = new URL(route, baseUrl);
+  const baseUrl = getApiUrl().replace(/\/$/, ""); // Limpia barra final
+  const cleanRoute = route.replace(/^\//, "");   // Limpia barra inicial
+  const url = `${baseUrl}/${cleanRoute}`;
 
   const token = await getAuthToken();
 
@@ -93,8 +94,9 @@ export async function apiRequestRaw(
   route: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const baseUrl = getApiUrl();
-  const url = new URL(route, baseUrl);
+  const baseUrl = getApiUrl().replace(/\/$/, ""); // Limpia barra final
+  const cleanRoute = route.replace(/^\//, "");   // Limpia barra inicial
+  const url = `${baseUrl}/${cleanRoute}`;
 
   const token = await getAuthToken();
 
@@ -120,8 +122,9 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const baseUrl = getApiUrl();
-    const url = new URL(queryKey.join("/") as string, baseUrl);
+    const baseUrl = getApiUrl().replace(/\/$/, "");
+    const cleanRoute = queryKey.join("/").replace(/^\//, "");
+    const url = `${baseUrl}/${cleanRoute}`;
 
     const token = await getAuthToken();
 

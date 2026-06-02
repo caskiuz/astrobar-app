@@ -44,7 +44,7 @@ const BIOMETRIC_PHONE_KEY = "@AstroBar_biometric_phone";
 
 const normalizePhone = (phone: string) => {
   const digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) return `+52${digits}`;
+  if (digits.length === 10) return `+54${digits}`;
   if (phone.startsWith("+")) return phone.replace(/\s+/g, "");
   return `+${digits}`;
 };
