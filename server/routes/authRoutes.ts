@@ -39,7 +39,6 @@ router.post("/phone-login", async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // BYPASS: Si es admin y el código es 123456, dejar pasar siempre
     const isAdminBypass = user[0].role === 'admin' && code === '123456';
 
     if (!isAdminBypass && (!user[0].verificationCode || user[0].verificationCode !== code)) {
@@ -92,7 +91,7 @@ router.post("/login", async (req, res) => {
   return router.handle(req, res);
 });
 
-// Development email login (Validando hashes reales con Bcrypt)
+// 🔄 Login por Email en TEXTO PLANO
 router.post("/dev-email-login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -105,7 +104,6 @@ router.post("/dev-email-login", async (req, res) => {
     const { db } = await import("../db");
     const { eq } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
-    const bcrypt = await import("bcrypt"); 
 
     let user = await db
       .select()
@@ -117,11 +115,8 @@ router.post("/dev-email-login", async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // Comparamos el password plano ingresado contra el hash guardado de la Base de Datos
-    const isMatch = await bcrypt.compare(password, user[0].password);
-    const isDevelopmentBypass = password === "password";
-
-    if (!isMatch && !isDevelopmentBypass) {
+    // 🔍 COMPARACIÓN DIRECTA: Compara el texto plano directamente
+    if (user[0].password !== password) {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
@@ -188,7 +183,7 @@ router.post("/send-code", async (req, res) => {
   }
 });
 
-// 🚀 NUEVO ENDPOINT: Registrar usuario encriptando contraseña
+// 🚀 Registro de Usuario en TEXTO PLANO
 router.post("/phone-signup", async (req, res) => {
   try {
     const { name, email, phone, password, role, birthDate, referralCode } = req.body;
@@ -201,7 +196,6 @@ router.post("/phone-signup", async (req, res) => {
     const { db } = await import("../db");
     const { eq, or } = await import("drizzle-orm");
     const jwt = await import("jsonwebtoken");
-    const bcrypt = await import("bcrypt"); 
 
     const phoneDigits = phone.replace(/[^\d]/g, '');
     const normalizedPhone = phoneDigits.startsWith('54') ? `+${phoneDigits}` : `+54${phoneDigits}`;
@@ -221,14 +215,12 @@ router.post("/phone-signup", async (req, res) => {
       return res.status(400).json({ error: "El teléfono o email ya se encuentra registrado" });
     }
 
-    // Encriptamos la clave antes de enviarla a MySQL
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+    // 🔍 SIN ENCRIPTAR: Guardamos 'password' tal cual viene del formulario web
     await db.insert(users).values({
       name,
       email: email || null,
       phone: normalizedPhone,
-      password: hashedPassword, 
+      password: password, 
       role: role || "customer",
       birthDate: birthDate ? new Date(birthDate).toISOString() : null,
       referralCode: referralCode || null,
