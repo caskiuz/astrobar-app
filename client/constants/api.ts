@@ -20,9 +20,11 @@ export const getApiBaseUrl = (): string => {
     return trimmed;
   }
 
-  // Development mode - use LOCAL backend
+  // 🚀 CAMBIO 1: Forzamos a que en desarrollo use Railway si no estás corriendo el backend local
   if (__DEV__) {
-    return "http://localhost:5000";
+    // Si estás corriendo tu servidor Node local en la PC, descomentá la línea de abajo y comentá la de Railway:
+    // return "http://localhost:5000";
+    return "https://astrobar-app-production-4821.up.railway.app";
   }
 
   // For web in production, use current origin (same domain)
@@ -44,6 +46,8 @@ export const API_CONFIG = {
       SEND_CODE: "/api/auth/send-code",
       LOGIN: "/api/auth/login",
       LOGOUT: "/api/auth/logout",
+      // 🚀 CAMBIO 2: Agregamos el endpoint de registro que estaba pidiendo tu pantalla
+      PHONE_SIGNUP: "/api/auth/phone-signup",
     },
     BUSINESSES: {
       LIST: "/api/businesses",
