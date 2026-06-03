@@ -447,7 +447,7 @@ export default function MyBusinessesScreen() {
       justifyContent: "flex-end",
     },
     modalContent: {
-      backgroundColor: theme.background,
+      backgroundColor: "#ffffff",
       borderTopLeftRadius: BorderRadius.xl,
       borderTopRightRadius: BorderRadius.xl,
       padding: Spacing.lg,
@@ -781,10 +781,10 @@ export default function MyBusinessesScreen() {
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, name: text }))}
             />
 
-            <ThemedText style={styles.inputLabel}>Descripci�n</ThemedText>
+            <ThemedText style={styles.inputLabel}>Descripcion</ThemedText>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Breve descripci�n de tu negocio"
+              placeholder="Breve descripcion de tu negocio"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.description}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, description: text }))}
@@ -903,10 +903,10 @@ export default function MyBusinessesScreen() {
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, name: text }))}
             />
 
-            <ThemedText style={styles.inputLabel}>Descripci�n</ThemedText>
+            <ThemedText style={styles.inputLabel}>Descripcion</ThemedText>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Breve descripci�n de tu negocio"
+              placeholder="Breve descripcion de tu negocio"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.description}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, description: text }))}
@@ -934,19 +934,19 @@ export default function MyBusinessesScreen() {
               ))}
             </View>
 
-            <ThemedText style={styles.inputLabel}>Direcci�n</ThemedText>
+            <ThemedText style={styles.inputLabel}>Direccion</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="Direcci�n del negocio"
+              placeholder="Direccion del negocio"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.address}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, address: text }))}
             />
 
-            <ThemedText style={styles.inputLabel}>Tel�fono</ThemedText>
+            <ThemedText style={styles.inputLabel}>Telefono</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="N�mero de contacto"
+              placeholder="Numero de contacto"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.phone}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, phone: text }))}
