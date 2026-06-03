@@ -7,6 +7,7 @@ import {
   timestamp,
   int,
   decimal,
+  longtext, //
 } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -127,8 +128,8 @@ export const businesses = mysqlTable("businesses", {
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull().default("restaurant"), // restaurant, market
-  image: text("image"),
-  coverImage: text("cover_image"),
+  image: longtext("image"),
+  coverImage: longtext("cover_image"),
   address: text("address"),
   phone: text("phone"),
   phoneVerified: boolean("phone_verified").notNull().default(false),
