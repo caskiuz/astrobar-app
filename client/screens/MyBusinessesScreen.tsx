@@ -812,19 +812,19 @@ export default function MyBusinessesScreen() {
               ))}
             </View>
 
-            <ThemedText style={styles.inputLabel}>Direcci�n</ThemedText>
+            <ThemedText style={styles.inputLabel}>Direccion</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="Direcci�n del negocio"
+              placeholder="Direccion del negocio"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.address}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, address: text }))}
             />
 
-            <ThemedText style={styles.inputLabel}>Tel�fono</ThemedText>
+            <ThemedText style={styles.inputLabel}>Telefono</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="N�mero de contacto"
+              placeholder="Numero de contacto"
               placeholderTextColor={theme.colors.textSecondary}
               value={newBusiness.phone}
               onChangeText={(text) => setNewBusiness(prev => ({ ...prev, phone: text }))}

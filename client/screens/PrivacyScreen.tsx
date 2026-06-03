@@ -53,7 +53,7 @@ export default function PrivacyScreen() {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={theme.text} />
         </Pressable>
-        <ThemedText type="h3">Política de Privacidad</ThemedText>
+        <ThemedText type="h3">Polï¿½tica de Privacidad</ThemedText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -61,36 +61,36 @@ export default function PrivacyScreen() {
         <View style={[styles.badge, { backgroundColor: AstroBarColors.success + '20' }]}>
           <Feather name="shield" size={16} color={AstroBarColors.success} />
           <ThemedText type="small" style={{ color: AstroBarColors.success, fontWeight: '600', marginLeft: Spacing.xs }}>
-            Última actualización: Febrero 2025
+            ï¿½ltima actualizaciï¿½n: Febrero 2025
           </ThemedText>
         </View>
 
         <Section title="Nuestro Compromiso">
           <Paragraph>
-            En AstroBar nos comprometemos a proteger su privacidad y datos personales. Esta política explica 
-            cómo recopilamos, usamos y protegemos su información.
+            En AstroBar nos comprometemos a proteger su privacidad y datos personales. Esta polï¿½tica explica 
+            cï¿½mo recopilamos, usamos y protegemos su informaciï¿½n.
           </Paragraph>
         </Section>
 
-        <Section title="Información que Recopilamos">
+        <Section title="Informaciï¿½n que Recopilamos">
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Al Registrarse:
           </ThemedText>
           <BulletPoint>Nombre completo</BulletPoint>
-          <BulletPoint>Número de teléfono (verificado por SMS)</BulletPoint>
-          <BulletPoint>Correo electrónico</BulletPoint>
-          <BulletPoint>Contraseña (encriptada)</BulletPoint>
+          <BulletPoint>Nï¿½mero de telï¿½fono (verificado por SMS)</BulletPoint>
+          <BulletPoint>Correo electrï¿½nico</BulletPoint>
+          <BulletPoint>Contraseï¿½a (encriptada)</BulletPoint>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Durante el Uso:
           </ThemedText>
           <BulletPoint>Direcciones de entrega</BulletPoint>
-          <BulletPoint>Información de pago (procesada por Mercado Pago)</BulletPoint>
+          <BulletPoint>Informaciï¿½n de pago (procesada por Mercado Pago)</BulletPoint>
           <BulletPoint>Historial de pedidos</BulletPoint>
-          <BulletPoint>Ubicación GPS (solo repartidores durante entregas)</BulletPoint>
+          <BulletPoint>Ubicaciï¿½n GPS (solo repartidores durante entregas)</BulletPoint>
         </Section>
 
-        <Section title="Cómo Usamos su Información">
+        <Section title="Cï¿½mo Usamos su Informaciï¿½n">
           <BulletPoint>Procesar y entregar pedidos</BulletPoint>
           <BulletPoint>Conectar usuarios, negocios y repartidores</BulletPoint>
           <BulletPoint>Calcular tarifas de entrega</BulletPoint>
@@ -100,34 +100,34 @@ export default function PrivacyScreen() {
           <BulletPoint>Prevenir fraudes</BulletPoint>
         </Section>
 
-        <Section title="Compartir Información">
+        <Section title="Compartir Informaciï¿½n">
           <InfoBox icon="users" title="Con Otros Usuarios">
             <Paragraph>
-              Solo compartimos información necesaria para completar pedidos: nombre, dirección de entrega 
-              y teléfono con negocio y repartidor asignado.
+              Solo compartimos informaciï¿½n necesaria para completar pedidos: nombre, direcciï¿½n de entrega 
+              y telï¿½fono con negocio y repartidor asignado.
             </Paragraph>
           </InfoBox>
 
           <InfoBox icon="server" title="Con Proveedores">
             <Paragraph>
-              Mercado Pago (pagos), Twilio (SMS), servicios de hosting. Todos cumplen con estándares de seguridad.
+              Mercado Pago (pagos), Twilio (SMS), servicios de hosting. Todos cumplen con estï¿½ndares de seguridad.
             </Paragraph>
           </InfoBox>
         </Section>
 
         <Section title="Seguridad de Datos">
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Medidas Técnicas:
+            Medidas Tï¿½cnicas:
           </ThemedText>
-          <BulletPoint>Encriptación HTTPS/TLS</BulletPoint>
-          <BulletPoint>Contraseñas hasheadas con bcrypt</BulletPoint>
+          <BulletPoint>Encriptaciï¿½n HTTPS/TLS</BulletPoint>
+          <BulletPoint>Contraseï¿½as hasheadas con bcrypt</BulletPoint>
           <BulletPoint>PCI-DSS compliance (Mercado Pago)</BulletPoint>
-          <BulletPoint>Backups automáticos diarios</BulletPoint>
+          <BulletPoint>Backups automï¿½ticos diarios</BulletPoint>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Su Responsabilidad:
           </ThemedText>
-          <BulletPoint>Use contraseña fuerte y única</BulletPoint>
+          <BulletPoint>Use contraseï¿½a fuerte y ï¿½nica</BulletPoint>
           <BulletPoint>No comparta sus credenciales</BulletPoint>
           <BulletPoint>Reporte actividad sospechosa</BulletPoint>
         </Section>
@@ -136,10 +136,10 @@ export default function PrivacyScreen() {
           <Paragraph>
             Conforme a la ley mexicana, usted tiene derecho a:
           </Paragraph>
-          <BulletPoint>Acceso: Conocer qué datos tenemos</BulletPoint>
-          <BulletPoint>Rectificación: Corregir datos inexactos</BulletPoint>
-          <BulletPoint>Cancelación: Solicitar eliminación</BulletPoint>
-          <BulletPoint>Oposición: Oponerse a ciertos usos</BulletPoint>
+          <BulletPoint>Acceso: Conocer quï¿½ datos tenemos</BulletPoint>
+          <BulletPoint>Rectificaciï¿½n: Corregir datos inexactos</BulletPoint>
+          <BulletPoint>Cancelaciï¿½n: Solicitar eliminaciï¿½n</BulletPoint>
+          <BulletPoint>Oposiciï¿½n: Oponerse a ciertos usos</BulletPoint>
 
           <View style={[styles.contactBox, { backgroundColor: theme.card }]}>
             <Feather name="mail" size={20} color={AstroBarColors.primary} />
@@ -151,17 +151,17 @@ export default function PrivacyScreen() {
                 privacy@AstroBar.app
               </ThemedText>
               <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
-                Respuesta en 20 días hábiles
+                Respuesta en 20 dias habiles
               </ThemedText>
             </View>
           </View>
         </Section>
 
-        <Section title="Retención de Datos">
-          <BulletPoint>Cuenta activa: Mientras esté activa</BulletPoint>
-          <BulletPoint>Historial de pedidos: 7 años (requisito fiscal)</BulletPoint>
-          <BulletPoint>Ubicación GPS: 30 días después de entrega</BulletPoint>
-          <BulletPoint>Comunicaciones: 2 años</BulletPoint>
+        <Section title="Retenciï¿½n de Datos">
+          <BulletPoint>Cuenta activa: Mientras estï¿½ activa</BulletPoint>
+          <BulletPoint>Historial de pedidos: 7 aï¿½os (requisito fiscal)</BulletPoint>
+          <BulletPoint>Ubicaciï¿½n GPS: 30 dï¿½as despuï¿½s de entrega</BulletPoint>
+          <BulletPoint>Comunicaciones: 2 aï¿½os</BulletPoint>
         </Section>
 
         <Section title="Privacidad por Rol">
@@ -169,7 +169,7 @@ export default function PrivacyScreen() {
             Usuarios/Clientes:
           </ThemedText>
           <Paragraph>
-            Protegemos información de pago, direcciones e historial. Solo compartimos nombre y dirección 
+            Protegemos informaciï¿½n de pago, direcciones e historial. Solo compartimos nombre y direcciï¿½n 
             durante pedido activo.
           </Paragraph>
 
@@ -177,14 +177,14 @@ export default function PrivacyScreen() {
             Repartidores:
           </ThemedText>
           <Paragraph>
-            Ubicación GPS solo visible durante entregas activas. Información de vehículo y ganancias privadas.
+            Ubicaciï¿½n GPS solo visible durante entregas activas. Informaciï¿½n de vehï¿½culo y ganancias privadas.
           </Paragraph>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Negocios:
           </ThemedText>
           <Paragraph>
-            Información bancaria encriptada. Métricas de ventas privadas.
+            Informaciï¿½n bancaria encriptada. Mï¿½tricas de ventas privadas.
           </Paragraph>
         </Section>
 
@@ -222,10 +222,10 @@ export default function PrivacyScreen() {
 
         <View style={[styles.footer, { backgroundColor: theme.card }]}>
           <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: 'center' }}>
-            Del náhuatl "vivir" - Conectando negocios locales con la comunidad
+            Del nï¿½huatl "vivir" - Conectando negocios locales con la comunidad
           </ThemedText>
           <ThemedText type="caption" style={{ color: theme.textSecondary, textAlign: 'center', marginTop: Spacing.xs }}>
-            © 2025 AstroBar. Todos los derechos reservados.
+            ï¿½ 2025 AstroBar. Todos los derechos reservados.
           </ThemedText>
         </View>
       </ScrollView>
