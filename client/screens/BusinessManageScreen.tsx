@@ -61,9 +61,7 @@ function ProductRow({
 
   return (
     <Animated.View entering={FadeInDown.springify()}>
-      <View
-        style={[styles.productRow, { backgroundColor: theme.card }, Shadows.sm]}
-      >
+      <View style={[styles.productRow, { backgroundColor: theme.card }, Shadows.sm]}>
         <Image
           source={{ uri: product.image }}
           style={styles.productImage}
@@ -220,7 +218,6 @@ export default function BusinessManageScreen() {
     }
   };
 
-  // 📍 MODIFICADO: Geocoding inteligente con tu Google API Key para traer altura real
   const handlePickLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -230,32 +227,23 @@ export default function BusinessManageScreen() {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      const lat = location.coords.latitude;
-      const lng = location.coords.longitude;
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
 
-      setBusinessLat(lat);
-      setBusinessLng(lng);
+      const fullAddress = geocode[0]
+        ? `${geocode[0].street || ""} ${geocode[0].streetNumber || ""}, ${geocode[0].city || ""}, ${geocode[0].region || ""}`.trim()
+        : "Buenos Aires, Argentina";
 
-      // Le pegamos a la API de Google Maps Geocoding para obtener la calle real en Argentina
-      const apiKey = "AIzaSyC4ThpUYqz-BYAlSw4kuynliboxgVqWKA";
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
-      );
-      const data = await response.json();
-
-      if (data.status === "OK" && data.results.length > 0) {
-        // Obtenemos la dirección completa formateada con calle, altura, localidad y provincia
-        const cleanAddress = data.results[0].formatted_address;
-        setBusinessAddress(cleanAddress);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert("Éxito", "Ubicación e información de calle configuradas");
-      } else {
-        // Fallback por si Google no responde o no encuentra altura exacta
-        setBusinessAddress("Sarandí, Buenos Aires, Argentina");
-        Alert.alert("Ubicación guardada", "Se guardaron las coordenadas GPS exactas.");
-      }
+      setBusinessAddress(fullAddress);
+      setBusinessLat(location.coords.latitude);
+      setBusinessLng(location.coords.longitude);
+      
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Éxito", "Ubicación obtenida de forma correcta");
     } catch (error) {
-      Alert.alert("Error", "No se pudo obtener la ubicación con Google Maps");
+      Alert.alert("Error", "No se pudo obtener la ubicación");
     }
   };
 
@@ -273,16 +261,16 @@ export default function BusinessManageScreen() {
     try {
       await apiRequest("PUT", `/api/business/${business?.id}`, {
         name: businessName.trim(),
-        description: businessDescription.trim(),
+        description: businessDescription.trim() || "",
         address: businessAddress.trim(),
-        phone: businessPhone.trim(),
-        image: businessImage,
-        latitude: businessLat,
-        longitude: businessLng,
+        phone: businessPhone.trim() || "",
+        image: businessImage || "",
+        latitude: Number(businessLat),
+        longitude: Number(businessLng),
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Éxito", "Información actualizada");
+      Alert.alert("Éxito", "Información actualizada de forma correcta");
       setEditMode(false);
       refetch();
     } catch (error) {
@@ -290,48 +278,36 @@ export default function BusinessManageScreen() {
     }
   };
 
-  const products = business?.products || [];
-  const availableProducts = products.filter((p) => p.isAvailable);
-  const unavailableProducts = products.filter((p) => !p.isAvailable);
+  const placeholderTextColor = theme.textSecondary || "#A0A0A0";
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header con navegación */}
-      <View style={[styles.topNav, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+      <View style={[styles.topNav, { backgroundColor: theme.card || theme.colors?.surface, borderBottomColor: theme.border || theme.colors?.border }]}>
         <Pressable
           style={styles.navButton}
-          onPress={() => navigation.navigate('BusinessPromotions')}
+          onPress={() => navigation.navigate('BusinessPromotions' as never)}
         >
-          <Feather name="megaphone" size={20} color={theme.colors.text.secondary} />
-          <ThemedText style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Promociones</ThemedText>
-        </>
-        <Pressable
-          style={styles.navButton}
-          onPress={() => navigation.navigate('BusinessMenu')}
-        >
-          <Feather name="restaurant" size={20} color={theme.colors.text.secondary} />
-          <ThemedText style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Menú</ThemedText>
-        </>
-        <Pressable
-          style={[styles.navButton, styles.navButtonActive]}
-          onPress={() => {}}
-        >
-          <Feather name="settings" size={20} color={AstroBarColors.primary} />
-          <ThemedText style={styles.navButtonText}>Ajustes</ThemedText>
-        </>
+          <Feather name="megaphone" size={20} color={theme.textSecondary} />
+          <ThemedText style={[styles.navButtonText, { color: theme.textSecondary }]}>Promociones</ThemedText>
+        </Pressable>
+       {/* ✅ ASÍ TIENE QUE QUEDAR */}
+<Pressable
+  style={styles.navButton}
+  onPress={() => navigation.navigate('BusinessPromotions' as never)}
+>
+  <Feather name="megaphone" size={20} color={theme.colors.text.secondary} />
+  <ThemedText style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>
+    Promociones
+  </ThemedText>
+</Pressable>   {/* <--- CORREGIDO A SU CIERRE CORRECTO */}
       </View>
 
       <View style={styles.header}>
         <ThemedText type="h2">Ajustes del Bar</ThemedText>
       </View>
 
-      <View
-        style={[
-          styles.businessCard,
-          { backgroundColor: theme.card },
-          Shadows.md,
-        ]}
-      >
+      <View style={[styles.businessCard, { backgroundColor: theme.card }, Shadows.md]}>
         <View style={styles.businessRow}>
           <View>
             <ThemedText type="h3">{business?.name || "Mi Negocio"}</ThemedText>
@@ -403,8 +379,8 @@ export default function BusinessManageScreen() {
             </View>
 
             {/* Información Básica */}
-            <View style={[styles.settingsSection, { backgroundColor: theme.card }, Shadows.sm]}>
-              <ThemedText type="h4" style={{ marginBottom: Spacing.md }}>Información Básica</ThemedText>
+            <View style={[styles.settingsSection, { backgroundColor: theme.card }, Shadows.sm, { marginTop: Spacing.md }]}>
+              <ThemedText type="h4" style={{ marginBottom: Spacing.md }}>Informacion Basica</ThemedText>
 
               <View style={styles.inputGroup}>
                 <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Nombre del Bar *</ThemedText>
@@ -414,51 +390,51 @@ export default function BusinessManageScreen() {
                   onChangeText={setBusinessName}
                   editable={editMode}
                   placeholder="Nombre del bar"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={placeholderTextColor}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Descripción</ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Descripcion</ThemedText>
                 <TextInput
                   style={[styles.input, styles.textArea, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
                   value={businessDescription}
                   onChangeText={setBusinessDescription}
                   editable={editMode}
                   placeholder="Describe tu bar..."
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={placeholderTextColor}
                   multiline
                   numberOfLines={3}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Teléfono</ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Telefono</ThemedText>
                 <TextInput
                   style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
                   value={businessPhone}
                   onChangeText={setBusinessPhone}
                   editable={editMode}
                   placeholder="+54 11 1234-5678"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={placeholderTextColor}
                   keyboardType="phone-pad"
                 />
               </View>
             </View>
 
             {/* Ubicación */}
-            <View style={[styles.settingsSection, { backgroundColor: theme.card }, Shadows.sm]}>
-              <ThemedText type="h4" style={{ marginBottom: Spacing.md }}>Ubicación *</ThemedText>
+            <View style={[styles.settingsSection, { backgroundColor: theme.card }, Shadows.sm, { marginTop: Spacing.md }]}>
+              <ThemedText type="h4" style={{ marginBottom: Spacing.md }}>Ubicacion *</ThemedText>
               
               <View style={styles.inputGroup}>
-                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Dirección</ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: 4 }}>Direccion</ThemedText>
                 <TextInput
                   style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
                   value={businessAddress}
                   onChangeText={setBusinessAddress}
                   editable={editMode}
                   placeholder="Dirección del bar"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={placeholderTextColor}
                 />
               </View>
 
@@ -538,7 +514,6 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: AstroBarColors.primary,
   },
   header: {
     flexDirection: "row",
@@ -546,12 +521,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "flex-start",
+    marginTop: Spacing.md,
   },
   businessCard: {
     marginHorizontal: Spacing.lg,
@@ -564,26 +534,96 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  tabs: {
-    flexDirection: "row",
-    marginHorizontal: Spacing.lg,
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: Spacing.lg,
   },
-  sectionHeader: {
+  productRow: {
     flexDirection: "row",
-    alignItems
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+  },
+  productImage: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.sm,
+  },
+  productInfo: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  availabilityToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  settingsSection: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  imageContainer: {
+    width: "100%",
+    height: 200,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+  },
+  businessImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imagePlaceholder: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inputGroup: {
+    marginBottom: Spacing.md,
+  },
+  input: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    fontSize: 16,
+    marginTop: 4,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: "top",
+  },
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  coordsInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.sm,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  button: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    ...Shadows.sm,
+  },
+});
