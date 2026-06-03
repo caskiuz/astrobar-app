@@ -34,7 +34,7 @@ router.get("/products", authenticateToken, requireRole("business_owner"), async 
     
     if (!business) {
       const businessId = uuidv4();
-      const newBusiness = {
+      const insertData: any = {
         id: businessId,
         name: "Mi Bar",
         address: "Buenos Aires, Argentina",
@@ -42,14 +42,18 @@ router.get("/products", authenticateToken, requireRole("business_owner"), async 
         longitude: -58.3816,
         phone: "+54 11 1234-5678",
         description: "Un bar increíble en Buenos Aires",
-        owner_id: req.user!.id,
         isActive: true,
         isVerified: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      await db.insert(businesses).values(newBusiness);
-      business = newBusiness;
+      
+      insertData.ownerId = req.user!.id;
+      insertData.owner_id = req.user!.id;
+
+      await db.insert(businesses).values(insertData);
+      const [fetchedBusiness] = await db.select().from(businesses).where(eq(businesses.id, businessId)).limit(1);
+      business = fetchedBusiness || insertData;
     }
     
     const businessProducts = await db.select().from(products).where(eq(products.businessId, business.id));
@@ -117,7 +121,7 @@ router.get("/dashboard", authenticateToken, requireRole("business_owner"), async
     
     if (!business) {
       const businessId = uuidv4();
-      const newBusiness = {
+      const insertData: any = {
         id: businessId,
         name: "Mi Bar",
         address: "Buenos Aires, Argentina",
@@ -125,14 +129,18 @@ router.get("/dashboard", authenticateToken, requireRole("business_owner"), async
         longitude: -58.3816,
         phone: "+54 11 1234-5678",
         description: "Un bar increíble en Buenos Aires",
-        owner_id: req.user!.id,
         isActive: true,
         isVerified: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      await db.insert(businesses).values(newBusiness);
-      business = newBusiness;
+      
+      insertData.ownerId = req.user!.id;
+      insertData.owner_id = req.user!.id;
+
+      await db.insert(businesses).values(insertData);
+      const [fetchedBusiness] = await db.select().from(businesses).where(eq(businesses.id, businessId)).limit(1);
+      business = fetchedBusiness || insertData;
     }
     const transactions = await db.select().from(promotionTransactions).where(eq(promotionTransactions.businessId, business.id)).orderBy(desc(promotionTransactions.createdAt));
     const pendingTransactions = transactions.filter(t => t.status === "pending");
@@ -172,7 +180,7 @@ router.get("/dashboard", authenticateToken, requireRole("business_owner"), async
       .map(t => ({ 
         id: t.id, 
         status: t.status === "redeemed" ? "delivered" : "pending", 
-        subtotal: t.amountPaid || 0, 
+        subtotal: Number(t.amountPaid) || 0, 
         customerName: 'Cliente', 
         createdAt: t.createdAt 
       }));
@@ -182,19 +190,19 @@ router.get("/dashboard", authenticateToken, requireRole("business_owner"), async
       dashboard: { 
         business, 
         isOpen: business.isActive, 
-        pendingOrders: pendingTransactions.length, 
-        todayOrders: todayTransactions.length, 
-        todayRevenue, 
-        totalOrders: transactions.length, 
+        pendingOrders: Number(pendingTransactions.length) || 0, 
+        todayOrders: Number(todayTransactions.length) || 0, 
+        todayRevenue: Number(todayRevenue) || 0, 
+        totalOrders: Number(transactions.length) || 0, 
         recentOrders: recentTransactions,
         activePromotions: {
-          total: activePromotions.length,
-          flash: activeFlash.length,
-          common: activeCommon.length,
-          flashList: activeFlash.map(p => ({ id: p.id, title: p.title, stock: p.stock - p.stockConsumed })),
-          commonList: activeCommon.map(p => ({ id: p.id, title: p.title, stock: p.stock - p.stockConsumed }))
+          total: Number(activePromotions.length) || 0,
+          flash: Number(activeFlash.length) || 0,
+          common: Number(activeCommon.length) || 0,
+          flashList: activeFlash.map(p => ({ id: p.id, title: p.title, stock: Number(p.stock - p.stockConsumed) || 0 })),
+          commonList: activeCommon.map(p => ({ id: p.id, title: p.title, stock: Number(p.stock - p.stockConsumed) || 0 }))
         },
-        platformCommission
+        platformCommission: Number(platformCommission) || 30
       } 
     });
   } catch (error: any) {
@@ -213,7 +221,7 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
     
     if (!business) {
       const businessId = uuidv4();
-      const newBusiness = {
+      const insertData: any = {
         id: businessId,
         name: "Mi Bar",
         address: "Buenos Aires, Argentina",
@@ -221,14 +229,18 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
         longitude: -58.3816,
         phone: "+54 11 1234-5678",
         description: "Un bar increíble en Buenos Aires",
-        owner_id: req.user!.id,
         isActive: true,
         isVerified: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      await db.insert(businesses).values(newBusiness);
-      business = newBusiness;
+      
+      insertData.ownerId = req.user!.id;
+      insertData.owner_id = req.user!.id;
+
+      await db.insert(businesses).values(insertData);
+      const [fetchedBusiness] = await db.select().from(businesses).where(eq(businesses.id, businessId)).limit(1);
+      business = fetchedBusiness || insertData;
     }
     const transactions = await db.select().from(promotionTransactions).where(eq(promotionTransactions.businessId, business.id)).orderBy(desc(promotionTransactions.createdAt));
     const redeemedTransactions = transactions.filter(t => t.status === 'redeemed');
@@ -243,7 +255,6 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
     const todayRevenue = paidTransactions.filter(t => new Date(t.createdAt) >= todayStart).reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
     const weekRevenue = paidTransactions.filter(t => new Date(t.createdAt) >= weekStart).reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
     const monthRevenue = paidTransactions.filter(t => new Date(t.createdAt) >= monthStart).reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
-    
     const avgValue = redeemedTransactions.length > 0 ? Math.round(totalRevenue / redeemedTransactions.length) : 0;
     
     const { sql } = await import("drizzle-orm");
@@ -259,7 +270,6 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
       quantity: Number(p.quantity),
       revenue: Number(p.revenue)
     }));
-    
     const cancelledCount = transactions.filter(t => t.status === 'cancelled').length;
     const cancellationRate = transactions.length > 0 ? Math.round((cancelledCount / transactions.length) * 100) : 0;
     
@@ -269,7 +279,6 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
       hourlyStats.set(hour, (hourlyStats.get(hour) || 0) + 1);
     });
     const peakHours = Array.from(hourlyStats.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([hour, count]) => ({ hour, count }));
-    
     const topUsersResult = await db.execute(sql`
       SELECT u.name, u.phone, COUNT(*) as redemptions, SUM(pt.amount_paid) as totalSpent
       FROM promotion_transactions pt
@@ -283,7 +292,6 @@ router.get("/stats", authenticateToken, requireRole("business_owner"), async (re
       redemptions: Number(u.redemptions),
       totalSpent: Number(u.totalSpent)
     }));
-
     res.json({ 
       success: true, 
       businessId: business.id, 
@@ -303,7 +311,7 @@ router.get("/promotions", authenticateToken, requireRole("business_owner"), asyn
     let [business] = await db.select().from(businesses).where(eq(businesses.ownerId, req.user!.id)).limit(1);
     if (!business) {
       const businessId = uuidv4();
-      const newBusiness = {
+      const insertData: any = {
         id: businessId,
         name: "Mi Bar",
         address: "Buenos Aires, Argentina",
@@ -311,16 +319,21 @@ router.get("/promotions", authenticateToken, requireRole("business_owner"), asyn
         longitude: -58.3816,
         phone: "+54 11 1234-5678",
         description: "Un bar increíble en Buenos Aires",
-        owner_id: req.user!.id,
         isActive: true,
         isVerified: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      await db.insert(businesses).values(newBusiness);
-      business = newBusiness;
+      
+      insertData.ownerId = req.user!.id;
+      insertData.owner_id = req.user!.id;
+
+      await db.insert(businesses).values(insertData);
+      const [fetchedBusiness] = await db.select().from(businesses).where(eq(businesses.id, businessId)).limit(1);
+      business = fetchedBusiness || insertData;
     }
     const businessPromotions = await db.select().from(promotions).where(eq(promotions.businessId, business.id));
+   
     const now = new Date();
     const activePromotions = businessPromotions.filter(p => p.isActive && new Date(p.endTime) > now);
     const flashPromotions = activePromotions.filter(p => p.type === 'flash');
@@ -372,6 +385,7 @@ router.get("/wallet-stats", authenticateToken, requireRole("business_owner"), as
     
     const paidTransactions = allTransactions.filter(t => t.status === 'pending' || t.status === 'redeemed');
     const totalEarnings = paidTransactions.reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
+    
     const pendingBalance = allTransactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
     const availableBalance = allTransactions.filter(t => t.status === 'redeemed').reduce((sum, t) => sum + (Number(t.businessRevenue) || 0), 0);
     let platformCommission = 30;
@@ -422,7 +436,6 @@ router.get("/payment-history", authenticateToken, requireRole("business_owner"),
     `;
     if (filter === 'sales') query = sql`${query} AND pt.status = 'redeemed'`;
     else if (filter === 'pending') query = sql`${query} AND pt.status = 'pending'`;
-    
     query = sql`${query} ORDER BY pt.created_at DESC`;
     const result: any = await db.execute(query);
     const allTransactions = Array.isArray(result[0]) ? result[0] : result;
@@ -436,7 +449,7 @@ router.get("/payment-history", authenticateToken, requireRole("business_owner"),
   }
 });
 
-// GET OWNER BAR PROFILE (Se movió arriba de las rutas dinámicas /:id)
+// GET OWNER BAR PROFILE
 router.get("/owner-profile", authenticateToken, requireRole("business_owner"), async (req, res) => {
   try {
     let [business] = await db.select().from(businesses).where(eq(businesses.ownerId, req.user!.id)).limit(1);
@@ -479,6 +492,7 @@ router.post("/products", authenticateToken, requireRole("business_owner"), async
     
     const { name, category, price, description, image, isAvailable } = req.body;
     const productId = uuidv4();
+  
     const newProduct = {
       id: productId, businessId: business.id, name: name || "Nuevo Producto", category: category || "General", price: price || 1000, description: description || "", image: image, isAvailable: isAvailable !== false, createdAt: new Date(), updatedAt: new Date()
     };
@@ -517,24 +531,27 @@ router.put("/:id", authenticateToken, requireRole("business_owner"), async (req,
     
     if (!existingBusiness) {
       console.log('✨ Creando el negocio por primera vez...');
-      const [newBusiness] = await db
-        .insert(businesses)
-        .values({
-          id: uuidv4(),
-          owner_Id: req.user!.id,
-          name: name || "Mi Nuevo Bar",
-          description: description || "",
-          address: address || "",
-          phone: phone || "",
-          image: image || "",
-          latitude: latitude !== undefined ? parseFloat(latitude) : null,
-          longitude: longitude !== undefined ? parseFloat(longitude) : null,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .returning();
+      const newBusinessId = uuidv4();
+      const insertData: any = {
+        id: newBusinessId,
+        name: name || "Mi Nuevo Bar",
+        description: description || "",
+        address: address || "",
+        phone: phone || "",
+        image: image || "",
+        latitude: latitude !== undefined ? parseFloat(latitude) : null,
+        longitude: longitude !== undefined ? parseFloat(longitude) : null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
+      insertData.ownerId = req.user!.id;
+      insertData.owner_id = req.user!.id;
+
+      await db.insert(businesses).values(insertData);
+      const [newBusiness] = await db.select().from(businesses).where(eq(businesses.id, newBusinessId)).limit(1);
+      
       console.log('✅ Bar creado exitosamente con ID:', newBusiness.id);
       return res.json({ success: true, business: newBusiness, message: "Bar creado correctamente" });
     }
@@ -635,11 +652,9 @@ router.get("/", async (req, res) => {
         }
         
         if (radius && distance && distance > Number(radius)) return null;
-        
         return { ...business, hasFlashPromo, flashPromoCount: flashPromos.length, distance, openingSoon: false, timeUntilOpen: null, isOpen: business.isActive };
       })
     );
-    
     res.json({ success: true, businesses: enrichedBusinesses.filter(b => b !== null) });
   } catch (error: any) {
     console.error('List businesses error:', error);
