@@ -38,7 +38,7 @@ router.post("/referrals/generate", authenticateToken, async (req, res) => {
   }
 });
 
-// Obtener mis referidos
+// Obtener mis referidos (BLINDADO CONTRA UNDEFINED)
 router.get("/referrals/my", authenticateToken, async (req, res) => {
   if (!isFeatureEnabled('REFERRAL_SYSTEM')) {
     return res.status(403).json({ error: "Módulo no disponible" });
@@ -47,22 +47,29 @@ router.get("/referrals/my", authenticateToken, async (req, res) => {
   try {
     console.log('📊 Fetching referrals for user:', req.user!.id);
     
-    // Primero verificar si el usuario tiene código de referido
-    const [codes] = await db.execute(sql`
+    // Primero verificar si el usuario tiene código de referido de forma segura
+    const resultCodes: any = await db.execute(sql`
       SELECT * FROM referral_codes WHERE user_id = ${req.user!.id}
     `);
+    
+    // Validamos la respuesta nativa de mysql2
+    const codes = resultCodes && Array.isArray(resultCodes[0]) ? resultCodes[0] : (Array.isArray(resultCodes) ? resultCodes : []);
     console.log('Codes found:', codes);
 
-    const [referrals] = await db.execute(sql`
+    // Buscamos los referidos de forma segura
+    const resultReferrals: any = await db.execute(sql`
       SELECT r.*, u.name as referred_name, u.email as referred_email
       FROM referrals r
       LEFT JOIN users u ON r.referred_id = u.id
       WHERE r.referrer_id = ${req.user!.id}
       ORDER BY r.created_at DESC
     `);
+    
+    const referrals = resultReferrals && Array.isArray(resultReferrals[0]) ? resultReferrals[0] : (Array.isArray(resultReferrals) ? resultReferrals : []);
     console.log('Referrals found:', referrals);
 
-    const stats = codes && Array.isArray(codes) && codes.length > 0 ? codes[0] : {
+    // Blindamos las estadísticas para evitar el crash del map/length en frontend
+    const stats = codes && codes.length > 0 ? codes[0] : {
       total_referrals: 0,
       successful_referrals: 0,
       total_earned: 0
@@ -117,7 +124,7 @@ router.get("/demand/recommendations", authenticateToken, requireRole("business_o
       ORDER BY priority DESC, created_at DESC
     `);
 
-    res.json({ success: true, recommendations });
+    res.json({ success: true, recommendations: recommendations || [] });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -142,7 +149,7 @@ router.get("/videos", async (req, res) => {
     }
 
     const [videos] = await db.execute(query);
-    res.json({ success: true, videos });
+    res.json({ success: true, videos: videos || [] });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -152,7 +159,7 @@ router.get("/videos", async (req, res) => {
 // MÓDULO 12: LINKS DE INVITACIÓN
 // ============================================
 
-// Crear link de invitación
+// Crear link de invitation
 router.post("/invitation-links", authenticateToken, async (req, res) => {
   if (!isFeatureEnabled('INVITATION_LINKS')) {
     return res.status(403).json({ error: "Módulo no disponible" });
@@ -213,7 +220,6 @@ router.get("/bar-rankings", async (req, res) => {
 
   try {
     console.log('📊 Fetching bar rankings...');
-    // Si no hay rankings, mostrar bares activos con stats básicas
     const [rankings] = await db.execute(sql`
       SELECT 
         b.id as business_id,
@@ -234,7 +240,7 @@ router.get("/bar-rankings", async (req, res) => {
     `);
 
     console.log('✅ Rankings fetched:', rankings);
-    res.json({ success: true, rankings });
+    res.json({ success: true, rankings: rankings || [] });
   } catch (error: any) {
     console.error('❌ Error fetching rankings:', error);
     res.status(500).json({ error: error.message });
@@ -326,7 +332,7 @@ router.get("/scheduled-promotions/my", authenticateToken, requireRole("business_
       ORDER BY next_activation ASC
     `);
 
-    res.json({ success: true, promotions: scheduled });
+    res.json({ success: true, promotions: scheduled || [] });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
