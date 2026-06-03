@@ -6,9 +6,17 @@ import path from 'path';
 import apiRoutes from './apiRoutes';
 import { validateEnv } from './env';
 
-console.log('🚀 [STARTUP] Initializing AstroBar Server...');
+// Capturadores globales para evitar que fallas asincrónicas ocultas tiren el contenedor sin dejar rastro
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
+});
 
-// Se quitó la línea de require.cache para evitar el choque con ESM en producción
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception thrown:", error);
+  process.exit(1);
+});
+
+console.log('🚀 [STARTUP] Initializing AstroBar Server...');
 
 // Validate environment variables at startup
 console.log('🔍 [STARTUP] Validating environment variables...');
@@ -37,7 +45,7 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting (Dejado original en 100 para que veas que no altera tu flujo)
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 100 : 10000,
@@ -169,15 +177,15 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.originalUrl}` });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log('🚀 Starting AstroBar API...');
+// Start server - Forzamos a escuchar en el puerto numérico y en la interfaz externa 0.0.0.0
+app.listen(Number(PORT), "0.0.0.0", async () => {
+  console.log(`🚀 Starting AstroBar API on port ${PORT}...`);
   try {
     const { createAuditTable } = await import('./routes/auditRoutes');
     await createAuditTable();
     const { startBusinessHoursCron } = await import('./businessHoursCron');
     startBusinessHoursCron();
-    console.log('✅ AstroBar API is running!');
+    console.log('✅ AstroBar API is running successfully and stable!');
   } catch (error: any) {
     console.error('❌ STARTUP ERROR:', error.message);
     process.exit(1);
