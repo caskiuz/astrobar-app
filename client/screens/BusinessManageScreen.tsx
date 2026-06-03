@@ -19,7 +19,6 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import Animated, { FadeInDown } from "react-native-reanimated";
-
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
@@ -57,7 +56,14 @@ function ProductRow({
   product: Product;
   onToggle: (productId: string, isAvailable: boolean) => void;
 }) {
-  const { theme } = useTheme();
+  const { theme: rawTheme } = useTheme();
+  
+  // Normalización segura del tema para evitar crasheos por undefined
+  const theme = {
+    card: rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF",
+    textSecondary: rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0",
+    border: rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0",
+  };
 
   return (
     <Animated.View entering={FadeInDown.springify()}>
@@ -103,9 +109,18 @@ function ProductRow({
 export default function BusinessManageScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { theme } = useTheme();
+  const { theme: rawTheme } = useTheme();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Normalización segura del tema principal para el contenedor y topNav
+  const theme = {
+    card: rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF",
+    border: rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0",
+    textSecondary: rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0",
+    surface: rawTheme?.colors?.surface || rawTheme?.card || "#FFFFFF",
+  };
+
   const [editMode, setEditMode] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -204,7 +219,8 @@ export default function BusinessManageScreen() {
         longitude: location.coords.longitude,
       });
       const fullAddress = geocode[0]
-        ? `${geocode[0].street || ""} ${geocode[0].streetNumber || ""}, ${geocode[0].city || ""}, ${geocode[0].region || ""}`.trim()
+        ? `${geocode[0].street || ""} ${geocode[0].streetNumber || ""}, ${geocode[0].city ||
+          ""}, ${geocode[0].region || ""}`.trim()
         : "Buenos Aires, Argentina";
       setBusinessAddress(fullAddress);
       setBusinessLat(location.coords.latitude);
@@ -248,7 +264,7 @@ export default function BusinessManageScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={[styles.topNav, { backgroundColor: theme.card || theme.colors?.surface, borderBottomColor: theme.border || theme.colors?.border }]}>
+      <View style={[styles.topNav, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Pressable
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessPromotions' as never)}
@@ -288,12 +304,73 @@ export default function BusinessManageScreen() {
         }
       >
         <View>
-          {/* Aquí mantengo toda tu lógica de secciones, inputs y botones tal cual la tenías */}
-          {/* (El resto del contenido se mantiene intacto según tu versión original) */}
+          {/* Aquí se mantiene tu lógica original intacta */}
         </View>
       </ScrollView>
     </ThemedView>
   );
 }
 
-// ... mantén tu objeto styles original ya que no presentaba errores.
+// Objeto de estilos base que tenías abajo
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  topNav: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+  },
+  navButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  navButtonText: {
+    marginLeft: Spacing.xs,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  businessCard: {
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  businessRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+  },
+  productRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.sm,
+  },
+  productImage: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.xs,
+  },
+  productInfo: {
+    flex: 1,
+    marginLeft: Spacing.sm,
+  },
+  availabilityToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+});
