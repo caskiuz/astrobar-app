@@ -959,7 +959,7 @@ export default function MyBusinessesScreen() {
             >
               <Feather name="map-pin" size={18} color="#fff" />
               <ThemedText style={[styles.buttonText, { color: "#fff", marginLeft: 8 }]}>
-                Usar mi ubicaci�n GPS
+                Usar mi ubicacion GPS
               </ThemedText>
             </Pressable>
             {businessLat && businessLng && (
