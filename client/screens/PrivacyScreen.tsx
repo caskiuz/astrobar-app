@@ -127,7 +127,7 @@ export default function PrivacyScreen() {
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Su Responsabilidad:
           </ThemedText>
-          <BulletPoint>Use contrase�a fuerte y �nica</BulletPoint>
+          <BulletPoint>Use contraseña fuerte y unica</BulletPoint>
           <BulletPoint>No comparta sus credenciales</BulletPoint>
           <BulletPoint>Reporte actividad sospechosa</BulletPoint>
         </Section>
@@ -157,11 +157,11 @@ export default function PrivacyScreen() {
           </View>
         </Section>
 
-        <Section title="Retenci�n de Datos">
-          <BulletPoint>Cuenta activa: Mientras est� activa</BulletPoint>
-          <BulletPoint>Historial de pedidos: 7 a�os (requisito fiscal)</BulletPoint>
-          <BulletPoint>Ubicaci�n GPS: 30 d�as despu�s de entrega</BulletPoint>
-          <BulletPoint>Comunicaciones: 2 a�os</BulletPoint>
+        <Section title="Retencien de Datos">
+          <BulletPoint>Cuenta activa: Mientras este activa</BulletPoint>
+          <BulletPoint>Historial de pedidos: 7 años (requisito fiscal)</BulletPoint>
+          <BulletPoint>Ubicacion GPS: 30 dias despues de entrega</BulletPoint>
+          <BulletPoint>Comunicaciones: 2 años</BulletPoint>
         </Section>
 
         <Section title="Privacidad por Rol">
@@ -184,7 +184,7 @@ export default function PrivacyScreen() {
             Negocios:
           </ThemedText>
           <Paragraph>
-            Informaci�n bancaria encriptada. M�tricas de ventas privadas.
+            Informaci�n bancaria encriptada. Metricas de ventas privadas.
           </Paragraph>
         </Section>
 
