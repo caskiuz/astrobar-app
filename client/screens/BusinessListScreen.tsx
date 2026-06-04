@@ -351,7 +351,7 @@ export default function BusinessListScreen() {
                 style={[styles.emptyText, { color: theme.textSecondary }]}
               >
                 No encontramos bares con esos filtros.{"\n"}Intenta con otra
-                b�squeda.
+                busqueda.
               </ThemedText>
               {hasActiveFilters ? (
                 <Pressable

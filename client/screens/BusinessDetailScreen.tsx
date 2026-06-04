@@ -217,7 +217,7 @@ export default function BusinessDetailScreen() {
                     type="small"
                     style={{ color: theme.textSecondary }}
                   >
-                    ({business.reviewCount} rese�as)
+                    ({business.reviewCount} reseñas)
                   </ThemedText>
                 </View>
                 <View style={styles.badgeRow}>
@@ -255,7 +255,7 @@ export default function BusinessDetailScreen() {
                 </ThemedText>
                 <View style={styles.dividerDot} />
                 <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Env�o ${business.deliveryFee}
+                  Envio ${business.deliveryFee}
                 </ThemedText>
                 <View style={styles.dividerDot} />
                 <ThemedText type="small" style={{ color: theme.textSecondary }}>

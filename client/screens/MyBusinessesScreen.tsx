@@ -114,12 +114,12 @@ export default function MyBusinessesScreen() {
   const handleSelectBusiness = async (business: Business) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await selectBusiness(business);
-    // Solo volver atr�s si no estamos en la pantalla principal de perfil
+    // Solo volver atras si no estamos en la pantalla principal de perfil
     // Permitir editar si estamos navegando desde perfil
   };
 
   const handlePickImage = async () => {
-    console.log('?? Iniciando selecci�n de imagen');
+    console.log('?? Iniciando seleccion de imagen');
     try {
       setUploadingImage(true);
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -134,10 +134,10 @@ export default function MyBusinessesScreen() {
 
       if (!result.canceled && result.assets[0].base64) {
         const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        console.log('?? Imagen convertida, tama�o:', base64Image.length);
+        console.log('?? Imagen convertida, tamaño:', base64Image.length);
         setNewBusiness(prev => ({ ...prev, image: base64Image }));
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        Alert.alert('�xito', 'Imagen seleccionada. Presiona Actualizar.');
+        Alert.alert('exito', 'Imagen seleccionada. Presiona Actualizar.');
       }
     } catch (error) {
       console.error('?? Error:', error);
@@ -151,7 +151,7 @@ export default function MyBusinessesScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Necesitamos acceso a tu ubicaci�n");
+        Alert.alert("Permiso denegado", "Necesitamos acceso a tu ubicacion");
         return;
       }
 
@@ -170,9 +170,9 @@ export default function MyBusinessesScreen() {
       setBusinessLng(location.coords.longitude);
       
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("�xito", "Ubicaci�n obtenida");
+      Alert.alert("exito", "Ubicacion obtenida");
     } catch (error) {
-      Alert.alert("Error", "No se pudo obtener la ubicaci�n");
+      Alert.alert("Error", "No se pudo obtener la ubicacion");
     }
   };
 
@@ -214,7 +214,7 @@ export default function MyBusinessesScreen() {
         setShowEditModal(false);
         setEditingBusiness(null);
         await loadBusinesses();
-        Alert.alert("�xito", "Negocio actualizado correctamente");
+        Alert.alert("exito", "Negocio actualizado correctamente");
       } else {
         Alert.alert("Error", data.error || "No se pudo actualizar");
       }
@@ -966,7 +966,7 @@ export default function MyBusinessesScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md }}>
                 <Feather name="check-circle" size={16} color="#4CAF50" />
                 <ThemedText style={{ color: "#4CAF50", marginLeft: 6, fontSize: 12 }}>
-                  Ubicaci�n configurada ({businessLat.toFixed(4)}, {businessLng.toFixed(4)})
+                  Ubicacion configurada ({businessLat.toFixed(4)}, {businessLng.toFixed(4)})
                 </ThemedText>
               </View>
             )}
@@ -1039,7 +1039,7 @@ export default function MyBusinessesScreen() {
             </View>
             <ThemedText style={styles.modalTitle}>Eliminar Negocio</ThemedText>
             <ThemedText style={styles.deleteMessage}>
-              Esta acci�n no se puede deshacer. Si el negocio tiene pedidos activos, no podr� ser eliminado.
+              Esta accion no se puede deshacer. Si el negocio tiene pedidos activos, no podra ser eliminado.
             </ThemedText>
 
             <View style={[styles.modalButtons, { width: "100%" }]}>

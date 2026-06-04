@@ -48,13 +48,13 @@ export default function EditProfileScreen() {
     }
 
     if (!phone.trim()) {
-      newErrors.phone = "El teléfono es requerido";
+      newErrors.phone = "El telefono es requerido";
     } else if (phone.trim().length < 10) {
-      newErrors.phone = "Ingresa un número de teléfono válido";
+      newErrors.phone = "Ingresa un numero de telefono valido";
     }
 
     if (email.trim() && !email.includes("@")) {
-      newErrors.email = "Ingresa un correo válido";
+      newErrors.email = "Ingresa un correo valido";
     }
 
     setErrors(newErrors);
@@ -223,7 +223,7 @@ export default function EditProfileScreen() {
           />
 
           <Input
-            label="Teléfono"
+            label="Telefono"
             leftIcon="phone"
             value={phone}
             onChangeText={setPhone}
@@ -234,7 +234,7 @@ export default function EditProfileScreen() {
           />
 
           <Input
-            label="Correo electrónico (opcional)"
+            label="Correo electronico (opcional)"
             leftIcon="mail"
             value={email}
             onChangeText={setEmail}
@@ -261,7 +261,7 @@ export default function EditProfileScreen() {
               marginLeft: Spacing.sm,
             }}
           >
-            El teléfono es tu identificador principal. El correo es opcional
+            El telefono es tu identificador principal. El correo es opcional
             para recibir recibos y notificaciones.
           </ThemedText>
         </View>

@@ -93,7 +93,7 @@ export default function ProductDetailScreen() {
     if (product.requiresNote && !note.trim()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       showToast(
-        "Por favor agrega una especificaci�n para este producto.",
+        "Por favor agrega una especificacion para este producto.",
         "warning",
       );
       return;
@@ -263,7 +263,7 @@ export default function ProductDetailScreen() {
             <View style={styles.noteLabelRow}>
               <ThemedText type="h4">
                 {product.requiresNote
-                  ? "Especificaci�n (requerida)"
+                  ? "Especificacion (requerida)"
                   : "Nota (opcional)"}
               </ThemedText>
               {product.requiresNote ? (
@@ -357,8 +357,8 @@ export default function ProductDetailScreen() {
 
       <ConfirmModal
         visible={showBusinessChangeModal}
-        title="�Cambiar de negocio?"
-        message="Ya tienes productos de otro negocio en tu carrito. �Deseas vaciar el carrito y agregar este producto?"
+        title="Cambiar de negocio?"
+        message="Ya tienes productos de otro negocio en tu carrito. Deseas vaciar el carrito y agregar este producto?"
         confirmText="Cambiar"
         cancelText="Cancelar"
         confirmColor={AstroBarColors.error}

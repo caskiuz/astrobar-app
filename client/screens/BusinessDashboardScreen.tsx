@@ -385,7 +385,7 @@ export default function BusinessDashboardScreen() {
             icon="check-circle"
             label="Completados"
             value={stats.orders.completed}
-            subtext={`${completionRate}% �xito`}
+            subtext={`${completionRate}% exito`}
             color="#4CAF50"
             delay={50}
           />
@@ -420,7 +420,7 @@ export default function BusinessDashboardScreen() {
         <View style={[styles.commissionCard, { backgroundColor: theme.card }, Shadows.sm]}>
           <Feather name="percent" size={20} color="#FF9800" />
           <View style={{ marginLeft: Spacing.md, flex: 1 }}>
-            <ThemedText type="caption" style={{ color: theme.textSecondary }}>Comisi�n de plataforma</ThemedText>
+            <ThemedText type="caption" style={{ color: theme.textSecondary }}>Comision de plataforma</ThemedText>
             <ThemedText type="h3" style={{ color: "#FF9800" }}>{dashboard.platformCommission?.toFixed(1)}%</ThemedText>
           </View>
           <ThemedText type="small" style={{ color: theme.textSecondary }}>adicional al precio</ThemedText>
@@ -460,7 +460,7 @@ export default function BusinessDashboardScreen() {
           <View style={[styles.limitsCard, { backgroundColor: theme.card }, Shadows.sm]}>
             <View style={styles.limitsHeader}>
               <Feather name="alert-circle" size={20} color={AstroBarColors.warning} />
-              <ThemedText type="h4" style={{ marginLeft: 8 }}>L�mites del Sistema</ThemedText>
+              <ThemedText type="h4" style={{ marginLeft: 8 }}>Limites del Sistema</ThemedText>
             </View>
             
             <View style={styles.limitItem}>
@@ -475,7 +475,7 @@ export default function BusinessDashboardScreen() {
                 }]} />
               </View>
               {dashboard.limits.products.percentage >= 90 && (
-                <ThemedText type="small" style={{ color: AstroBarColors.error, marginTop: 4 }}>�Casi al l�mite!</ThemedText>
+                <ThemedText type="small" style={{ color: AstroBarColors.error, marginTop: 4 }}>¡Casi al limite!</ThemedText>
               )}
             </View>
 
@@ -510,7 +510,7 @@ export default function BusinessDashboardScreen() {
         {stats.topProducts.length > 0 ? (
           <>
             <ThemedText type="h3" style={{ marginTop: Spacing.lg, marginBottom: Spacing.sm }}>
-              Productos M�s Vendidos
+              Productos Mas Vendidos
             </ThemedText>
             {stats.topProducts.map((product, index) => (
               <TopProductRow key={index} product={product} index={index} />
@@ -555,7 +555,7 @@ export default function BusinessDashboardScreen() {
         ) : null}
 
         <View style={styles.quickActions}>
-          <ThemedText type="h3" style={{ marginBottom: Spacing.sm }}>Acciones R�pidas</ThemedText>
+          <ThemedText type="h3" style={{ marginBottom: Spacing.sm }}>Acciones Rapidas</ThemedText>
           <View style={styles.actionsRow}>
             <Pressable
               style={[styles.actionButton, { backgroundColor: theme.card }]}

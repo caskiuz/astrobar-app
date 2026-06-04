@@ -54,7 +54,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
-    subtitle: "M�tricas y pedidos activos",
+    subtitle: "Métricas y pedidos activos",
     icon: "bar-chart-2",
     tab: "dashboard",
     color: AstroBarColors.primary,
@@ -68,7 +68,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "Repartidores",
-    subtitle: "Estado y ubicaci�n",
+    subtitle: "Estado y ubicación",
     icon: "truck",
     tab: "drivers",
     color: "#9C27B0",
@@ -89,7 +89,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "Zonas",
-    subtitle: "�reas de entrega",
+    subtitle: "Áreas de entrega",
     icon: "map-pin",
     tab: "zones",
     color: "#E91E63",
@@ -109,7 +109,7 @@ const menuItems: MenuItem[] = [
     color: "#FF5722",
   },
   {
-    title: "Configuraci�n",
+    title: "Configuración",
     subtitle: "Ajustes del sistema",
     icon: "sliders",
     tab: "settings",
@@ -143,9 +143,6 @@ export default function AdminMenuScreen() {
   const [orderModalVisible, setOrderModalVisible] = useState(false);
   const [userRoleEdit, setUserRoleEdit] = useState("");
 
-  // Debug modal state
-  console.log('Modal states:', { userModalVisible, orderModalVisible, selectedUser, selectedOrder });
-
   const fetchDashboardData = async () => {
     try {
       const [metricsRes, ordersRes, driversRes] = await Promise.all([
@@ -156,6 +153,7 @@ export default function AdminMenuScreen() {
       const metricsData = await metricsRes.json();
       const ordersData = await ordersRes.json();
       const driversData = await driversRes.json();
+      
       setDashboardMetrics(metricsData);
       setActiveOrders(ordersData.orders || []);
       setOnlineDrivers(driversData.drivers || []);
@@ -206,7 +204,6 @@ export default function AdminMenuScreen() {
 
   const handleMenuPress = (tab: string) => {
     Haptics.selectionAsync();
-    // Cerrar modales antes de cambiar de pesta�a
     setUserModalVisible(false);
     setOrderModalVisible(false);
     setSelectedUser(null);
@@ -215,7 +212,6 @@ export default function AdminMenuScreen() {
   };
 
   const handleBack = () => {
-    // Cerrar modales antes de cambiar de pesta�a
     setUserModalVisible(false);
     setOrderModalVisible(false);
     setSelectedUser(null);
@@ -224,51 +220,15 @@ export default function AdminMenuScreen() {
   };
 
   const openUserModal = (user: AdminUser) => {
-    console.log("Opening user modal for:", user.name);
     setSelectedUser(user);
     setUserRoleEdit(user.role);
     setUserModalVisible(true);
   };
 
   const handleOrderPress = (order: AdminOrder) => {
-    console.log('Order pressed:', order);
     setSelectedOrder(order);
     setOrderModalVisible(true);
     showToast(`Abriendo pedido #${order.id.slice(0, 8)}`, "info");
-  };
-
-  const handleUserAction = (action: string, user: AdminUser) => {
-    Alert.alert(
-      `${action} Usuario`,
-      `�Est�s seguro de ${action.toLowerCase()} a ${user.name}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Confirmar", 
-          onPress: () => {
-            showToast(`Usuario ${action.toLowerCase()}`, "success");
-            setUserModalVisible(false);
-          }
-        }
-      ]
-    );
-  };
-
-  const handleOrderAction = (action: string, order: AdminOrder) => {
-    Alert.alert(
-      `${action} Pedido`,
-      `�Cambiar estado del pedido #${order.id.slice(0, 8)}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Confirmar", 
-          onPress: () => {
-            showToast(`Pedido ${action.toLowerCase()}`, "success");
-            setOrderModalVisible(false);
-          }
-        }
-      ]
-    );
   };
 
   const handleUpdateUserRole = async () => {
@@ -298,12 +258,20 @@ export default function AdminMenuScreen() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
+        // CORRECCIÓN EXTRA: Mapeamos los campos directo a stats por las dudas que los requiera ahí
+        const fallBackStats = dashboardMetrics ? {
+          usersCount: dashboardMetrics.usersCount || 0,
+          businessesCount: dashboardMetrics.businessesCount || 0,
+          promotionsCount: dashboardMetrics.promotionsCount || 0,
+          acceptanceRate: dashboardMetrics.acceptanceRate || 0
+        } : null;
+
         return (
           <DashboardTab
             metrics={dashboardMetrics}
             activeOrders={activeOrders}
             onlineDrivers={onlineDrivers}
-            stats={null}
+            stats={fallBackStats || dashboardMetrics}
           />
         );
       case "drivers":
@@ -336,7 +304,7 @@ export default function AdminMenuScreen() {
           <View style={styles.emptyState}>
             <Feather name="settings" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
-              Secci�n en desarrollo
+              Sección en desarrollo
             </ThemedText>
           </View>
         );
@@ -376,9 +344,9 @@ export default function AdminMenuScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
-        <ThemedText type="h1">🛠️ Panel Admin - EDITADO</ThemedText>
+        <ThemedText type="h1">🛠️ Panel Admin</ThemedText>
         <ThemedText type="small" style={{ color: theme.textSecondary }}>
-          Bienvenido, {user?.name} - ARCHIVO CORRECTO
+          Bienvenido, {user?.name}
         </ThemedText>
       </View>
 
@@ -420,7 +388,7 @@ export default function AdminMenuScreen() {
         </View>
       </ScrollView>
 
-      {/* User Modal - Restored */}
+      {/* User Modal */}
       <Modal
         visible={userModalVisible}
         animationType="slide"
@@ -498,162 +466,29 @@ export default function AdminMenuScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* Order Modal */}
-      <Modal
-        visible={orderModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setOrderModalVisible(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'white', paddingTop: 50 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
-            <ThemedText type="h2">Detalles del Pedido</ThemedText>
-            <Pressable onPress={() => setOrderModalVisible(false)}>
-              <ThemedText>X</ThemedText>
-            </Pressable>
-          </View>
-          {selectedOrder && (
-            <View style={{ padding: 20 }}>
-              <ThemedText type="h3">#{selectedOrder.id.slice(0, 8)}</ThemedText>
-              <ThemedText style={{ marginTop: 8 }}>Negocio: {selectedOrder.businessName}</ThemedText>
-              <ThemedText>Cliente: {selectedOrder.customerName}</ThemedText>
-              <ThemedText>Total: ${(selectedOrder.total / 100).toFixed(2)}</ThemedText>
-              <ThemedText>Estado: {selectedOrder.status}</ThemedText>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-                <Pressable 
-                  style={{ flex: 1, padding: 15, backgroundColor: '#10b981', borderRadius: 8, alignItems: 'center' }}
-                  onPress={() => handleOrderAction("Confirmar", selectedOrder)}
-                >
-                  <ThemedText style={{ color: "white" }}>Confirmar</ThemedText>
-                </Pressable>
-                <Pressable 
-                  style={{ flex: 1, padding: 15, backgroundColor: '#ef4444', borderRadius: 8, alignItems: 'center' }}
-                  onPress={() => handleOrderAction("Cancelar", selectedOrder)}
-                >
-                  <ThemedText style={{ color: "white" }}>Cancelar</ThemedText>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </View>
-      </Modal>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingTop: 0,
-    paddingBottom: Spacing["4xl"],
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.md,
-  },
-  card: {
-    width: "47%",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    alignItems: "center",
-    minHeight: 120,
-  },
-  cardIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: BorderRadius.lg,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  cardTitle: {
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: Spacing.xs,
-  },
-  cardSubtitle: {
-    textAlign: "center",
-    lineHeight: 16,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: Spacing["4xl"],
-  },
-  modalContainer: {
-    flex: 1,
-    paddingTop: 50,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  modalContent: {
-    height: "85%",
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-  },
-  modalBody: {
-    flex: 1,
-    marginBottom: Spacing.md,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  userDetailCard: {
-    alignItems: "center",
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.full,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  saveButton: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    alignItems: "center",
-    marginTop: Spacing.md,
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    minWidth: 70,
-  },
+  container: { flex: 1 },
+  header: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
+  headerContent: { flexDirection: "row", alignItems: "center" },
+  backButton: { marginRight: Spacing.md, padding: Spacing.xs },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: Spacing.lg, paddingTop: 0, paddingBottom: Spacing["4xl"] },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.md },
+  card: { width: "47%", padding: Spacing.lg, borderRadius: BorderRadius.lg, alignItems: "center", minHeight: 120 },
+  cardIcon: { width: 60, height: 60, borderRadius: BorderRadius.lg, justifyContent: "center", alignItems: "center", marginBottom: Spacing.md },
+  cardTitle: { fontWeight: "600", textAlign: "center", marginBottom: Spacing.xs },
+  cardSubtitle: { textAlign: "center", lineHeight: 16 },
+  emptyState: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: Spacing["4xl"] },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg, borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  modalContent: { height: "85%", borderTopLeftRadius: BorderRadius.xl, borderTopRightRadius: BorderRadius.xl, padding: Spacing.lg },
+  modalBody: { flex: 1, marginBottom: Spacing.md },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  userDetailCard: { alignItems: "center", padding: Spacing.xl, borderRadius: BorderRadius.lg },
+  avatar: { width: 44, height: 44, borderRadius: BorderRadius.full, justifyContent: "center", alignItems: "center" },
+  saveButton: { padding: Spacing.lg, borderRadius: BorderRadius.lg, alignItems: "center", marginTop: Spacing.md },
+  tab: { flexDirection: "row", alignItems: "center", paddingVertical: Spacing.xs, paddingHorizontal: Spacing.sm, borderRadius: BorderRadius.full, borderWidth: 1, minWidth: 70 },
 });
