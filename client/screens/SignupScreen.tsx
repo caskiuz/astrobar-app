@@ -49,7 +49,7 @@ const ROLES: {
   },
   {
     value: "business_owner",
-    label: "Dueño de Bar",
+    label: "DueÃ±o de Bar",
     icon: "zap",
     description: "Crea promociones para tu bar",
   },
@@ -148,23 +148,23 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     }
 
     if (email.trim() && !validateEmail(email)) {
-      newErrors.email = "Ingresa un correo válido";
+      newErrors.email = "Ingresa un correo valido";
     }
 
     if (!password) {
-      newErrors.password = "La contraseña es requerida";
+      newErrors.password = "La contraseÃ±a es requerida";
     } else if (password.length < 8) {
-      newErrors.password = "Mínimo 8 caracteres";
+      newErrors.password = "Minimo 8 caracteres";
     }
 
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden";
+      newErrors.confirmPassword = "Las contraseÃ±as no coinciden";
     }
 
     if (!phone) {
-      newErrors.phone = "El teléfono es requerido";
+      newErrors.phone = "El telefono es requerido";
     } else if (phone.length < 10) {
-      newErrors.phone = "Ingresa 10 dígitos";
+      newErrors.phone = "Ingresa 10 digitos";
     }
 
     if (!birthDate) {
@@ -172,7 +172,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     } else {
       const age = calculateAge(birthDate);
       if (age < 18) {
-        newErrors.birthDate = "Debes ser mayor de 18 años para usar AstroBar";
+        newErrors.birthDate = "Debes ser mayor de 18 aÃ±os para usar AstroBar";
       }
     }
 
@@ -240,7 +240,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     try {
       await Share.share({
         message:
-          "Descubre AstroBar - Tu Promociones Nocturnas de confianza en Autlán. Descubre promociones en bares del mercado con un toque. Descarga ahora: https://AstroBar.replit.app",
+          "Descubre AstroBar - Tu Promociones Nocturnas de confianza en Autlï¿½n. Descubre promociones en bares del mercado con un toque. Descarga ahora: https://AstroBar.replit.app",
         title: "AstroBar - Promociones Nocturnas",
       });
     } catch (error) {
@@ -296,7 +296,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             />
 
             <Input
-              label="Correo electrónico (opcional)"
+              label="Correo electrÃ³nico (opcional)"
               placeholder="tu@email.com"
               leftIcon="mail"
               value={email}
@@ -313,7 +313,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
             <View style={styles.inputWrapper}>
               <ThemedText type="small" style={styles.inputLabel}>
-                Contraseña
+                ContraseÃ±a
               </ThemedText>
               <View
                 style={[
@@ -328,7 +328,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   style={styles.inputBoxIcon}
                 />
                 <TextInput
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="MÃ­nimo 8 caracteres"
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
@@ -357,7 +357,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
             <View style={styles.inputWrapper}>
               <ThemedText type="small" style={styles.inputLabel}>
-                Confirmar contraseña
+                Confirmar contraseÃ±a
               </ThemedText>
               <View
                 style={[
@@ -372,7 +372,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   style={styles.inputBoxIcon}
                 />
                 <TextInput
-                  placeholder="Repite tu contraseña"
+                  placeholder="Repite tu contraseÃ±a"
                   value={confirmPassword}
                   onChangeText={(text) => {
                     setConfirmPassword(text);
@@ -394,7 +394,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
             <View style={styles.inputWrapper}>
               <ThemedText type="small" style={styles.inputLabel}>
-                Número de teléfono
+                NÃºmero de telÃ©fono
               </ThemedText>
               <View style={styles.phoneInputContainer}>
                 <View style={styles.countryCode}>
@@ -434,7 +434,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                 </ThemedText>
               ) : null}
               <ThemedText type="caption" style={styles.phoneHint}>
-                Te enviaremos un SMS para verificar tu número
+                Te enviaremos un SMS para verificar tu nÃºmero
               </ThemedText>
             </View>
 
@@ -472,7 +472,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                 </ThemedText>
               ) : null}
               <ThemedText type="caption" style={styles.phoneHint}>
-                Debes ser mayor de 18 años para usar AstroBar
+                Debes ser mayor de 18 aÃ±os para usar AstroBar
               </ThemedText>
             </View>
 
@@ -626,7 +626,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             ) : null}
 
             <Input
-              label="Código de referido (opcional)"
+              label="Codigo de referido (opcional)"
               placeholder="Ej: ABC123"
               leftIcon="gift"
               value={referralCode}
@@ -637,7 +637,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             />
 
             <ThemedText type="small" style={styles.roleLabel}>
-              ¿Cómo quieres usar AstroBar?
+              Como quieres usar AstroBar?
             </ThemedText>
             <View style={styles.rolesContainer}>
               {ROLES.map((r) => (
@@ -712,7 +712,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             </Button>
 
             <ThemedText type="caption" style={styles.termsText}>
-              Al registrarte aceptas nuestros términos y condiciones
+              Al registrarte aceptas nuestros terminos y condiciones
             </ThemedText>
           </View>
 
@@ -738,11 +738,11 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
           <View style={styles.loginLink}>
             <ThemedText type="body" style={styles.loginText}>
-              ¿Ya tienes cuenta?{" "}
+              Ya tienes cuenta?{" "}
             </ThemedText>
             <Pressable onPress={() => navigation.goBack()}>
               <ThemedText type="body" style={styles.loginLinkText}>
-                Inicia sesión
+                Inicia sesion
               </ThemedText>
             </Pressable>
           </View>

@@ -397,7 +397,7 @@ export default function ProfileScreen() {
       case "customer":
         return "Cliente";
       case "business_owner":
-        return "Dueáo de Bar";
+        return "Dueño de Bar";
       case "admin":
       case "super_admin":
         return "Administrador";
