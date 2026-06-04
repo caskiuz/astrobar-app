@@ -228,7 +228,7 @@ export default function EditProfileScreen() {
             value={phone}
             onChangeText={setPhone}
             error={errors.phone}
-            placeholder="+52 xxx xxx xxxx"
+            placeholder="+54 xxx xxx xxxx"
             keyboardType="phone-pad"
             autoCorrect={false}
           />
