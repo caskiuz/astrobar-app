@@ -19,6 +19,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import Animated, { FadeInDown } from "react-native-reanimated";
+
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
@@ -49,63 +50,6 @@ interface Business {
   products: Product[];
 }
 
-function ProductRow({
-  product,
-  onToggle,
-}: {
-  product: Product;
-  onToggle: (productId: string, isAvailable: boolean) => void;
-}) {
-  const { theme: rawTheme } = useTheme();
-  
-  // Normalización segura del tema para evitar crasheos por undefined
-  const theme = {
-    card: rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF",
-    textSecondary: rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0",
-    border: rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0",
-  };
-
-  return (
-    <Animated.View entering={FadeInDown.springify()}>
-      <View style={[styles.productRow, { backgroundColor: theme.card }, Shadows.sm]}>
-        <Image
-          source={{ uri: product.image }}
-          style={styles.productImage}
-          contentFit="cover"
-        />
-        <View style={styles.productInfo}>
-          <ThemedText type="body" style={{ fontWeight: "600" }} numberOfLines={1}>
-            {product.name}
-          </ThemedText>
-          <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-            ${(product.price / 100).toFixed(2)}
-          </ThemedText>
-        </View>
-        <View style={styles.availabilityToggle}>
-          <ThemedText
-            type="caption"
-            style={{
-              color: product.isAvailable ? "#4CAF50" : "#F44336",
-              marginRight: Spacing.sm,
-            }}
-          >
-            {product.isAvailable ? "Disponible" : "Agotado"}
-          </ThemedText>
-          <Switch
-            value={product.isAvailable}
-            onValueChange={(value) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              onToggle(product.id, value);
-            }}
-            trackColor={{ false: "#F44336", true: "#4CAF50" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-
 export default function BusinessManageScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -113,12 +57,13 @@ export default function BusinessManageScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Normalización segura del tema principal para el contenedor y topNav
+  // Normalización segura del tema visual
   const theme = {
     card: rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF",
     border: rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0",
     textSecondary: rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0",
     surface: rawTheme?.colors?.surface || rawTheme?.card || "#FFFFFF",
+    text: rawTheme?.text || rawTheme?.colors?.text || "#000000",
   };
 
   const [editMode, setEditMode] = useState(false);
@@ -141,28 +86,29 @@ export default function BusinessManageScreen() {
     enabled: !!user?.id,
   });
 
-  const updateProductMutation = useMutation({
-    mutationFn: async ({ productId, isAvailable }: { productId: string; isAvailable: boolean }) => {
-      await apiRequest("PUT", `/api/admin/products/${productId}`, { isAvailable });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/business", user?.id] });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    },
-  });
-
+  // CORRECCIÓN: El switch ahora le pega a la ruta de business propia del dueño
   const toggleBusinessMutation = useMutation({
     mutationFn: async ({ businessId, isOpen }: { businessId: string; isOpen: boolean }) => {
-      await apiRequest("PUT", `/api/admin/businesses/${businessId}`, { isOpen });
+      await apiRequest("PUT", `/api/business/${businessId}`, {
+        name: businessName || business?.name,
+        address: businessAddress || business?.address,
+        latitude: businessLat || business?.latitude,
+        longitude: businessLng || business?.longitude,
+        isOpen: isOpen
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/business", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/business", user?.id, "details"] });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
+    onError: () => {
+      Alert.alert("Error", "No se pudo cambiar el estado del bar");
+    }
   });
 
   const handleToggleBusiness = (isOpen: boolean) => {
     if (business) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       toggleBusinessMutation.mutate({ businessId: business.id, isOpen });
     }
   };
@@ -219,8 +165,7 @@ export default function BusinessManageScreen() {
         longitude: location.coords.longitude,
       });
       const fullAddress = geocode[0]
-        ? `${geocode[0].street || ""} ${geocode[0].streetNumber || ""}, ${geocode[0].city ||
-          ""}, ${geocode[0].region || ""}`.trim()
+        ? `${geocode[0].street || ""} ${geocode[0].streetNumber || ""}, ${geocode[0].city || ""}, ${geocode[0].region || ""}`.trim()
         : "Buenos Aires, Argentina";
       setBusinessAddress(fullAddress);
       setBusinessLat(location.coords.latitude);
@@ -250,6 +195,7 @@ export default function BusinessManageScreen() {
         image: businessImage || "",
         latitude: Number(businessLat),
         longitude: Number(businessLng),
+        isOpen: business?.isOpen ?? false,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Éxito", "Información actualizada");
@@ -262,8 +208,17 @@ export default function BusinessManageScreen() {
 
   const placeholderTextColor = theme.textSecondary || "#A0A0A0";
 
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.center}>
+        <ActivityIndicator size="large" color={AstroBarColors.primary} />
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Barra superior de navegación */}
       <View style={[styles.topNav, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Pressable
           style={styles.navButton}
@@ -274,47 +229,123 @@ export default function BusinessManageScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.header}>
-        <ThemedText type="h2">Ajustes del Bar</ThemedText>
-      </View>
-
-      <View style={[styles.businessCard, { backgroundColor: theme.card }, Shadows.md]}>
-        <View style={styles.businessRow}>
-          <View>
-            <ThemedText type="h3">{business?.name || "Mi Negocio"}</ThemedText>
-            <ThemedText type="caption" style={{ color: business?.isOpen ? "#4CAF50" : "#F44336", marginTop: 4 }}>
-              {business?.isOpen ? "Abierto" : "Cerrado"}
-            </ThemedText>
-          </View>
-          <Switch
-            value={business?.isOpen ?? true}
-            onValueChange={handleToggleBusiness}
-            trackColor={{ false: "#F44336", true: "#4CAF50" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={AstroBarColors.primary} />
         }
       >
-        <View>
-          {/* Aquí se mantiene tu lógica original intacta */}
+        <View style={styles.header}>
+          <ThemedText type="h2">Ajustes del Bar</ThemedText>
         </View>
+
+        {/* Card de Estado Abierto/Cerrado */}
+        <View style={[styles.businessCard, { backgroundColor: theme.card }, Shadows.md]}>
+          <View style={styles.businessRow}>
+            <View>
+              <ThemedText type="h3">{business?.name || "Mi Negocio"}</ThemedText>
+              <ThemedText type="caption" style={{ color: business?.isOpen ? "#4CAF50" : "#F44336", marginTop: 4, fontWeight: "bold" }}>
+                {business?.isOpen ? "Abierto" : "Cerrado"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={business?.isOpen ?? false}
+              onValueChange={handleToggleBusiness}
+              trackColor={{ false: "#F44336", true: "#4CAF50" }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* FORMULARIO RESTAURADO */}
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.form}>
+          <ThemedText type="body" style={styles.label}>Nombre del Bar *</ThemedText>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            value={businessName}
+            onChangeText={setBusinessName}
+            placeholder="Ej. Astro Bar"
+            placeholderTextColor={placeholderTextColor}
+          />
+
+          <ThemedText type="body" style={styles.label}>Descripción</ThemedText>
+          <TextInput
+            style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            value={businessDescription}
+            onChangeText={setBusinessDescription}
+            placeholder="Contale a tus clientes sobre tu bar..."
+            placeholderTextColor={placeholderTextColor}
+            multiline
+            numberOfLines={3}
+          />
+
+          <ThemedText type="body" style={styles.label}>Teléfono de Contacto</ThemedText>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            value={businessPhone}
+            onChangeText={setBusinessPhone}
+            placeholder="Ej. 1123456789"
+            placeholderTextColor={placeholderTextColor}
+            keyboardType="phone-pad"
+          />
+
+          <ThemedText type="body" style={styles.label}>Dirección física *</ThemedText>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            value={businessAddress}
+            onChangeText={setBusinessAddress}
+            placeholder="Dirección del local"
+            placeholderTextColor={placeholderTextColor}
+            editable={false}
+          />
+
+          {/* Botón de GPS */}
+          <Pressable 
+            style={[styles.geoButton, { backgroundColor: AstroBarColors.primary }]} 
+            onPress={handlePickLocation}
+          >
+            <Feather name="map-pin" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <ThemedText style={styles.geoButtonText}>Obtener Ubicación por GPS</ThemedText>
+          </Pressable>
+
+          {businessLat && businessLng && (
+            <ThemedText type="caption" style={styles.geoSuccess}>
+              ✓ Coordenadas fijadas: ({businessLat.toFixed(4)}, {businessLng.toFixed(4)})
+            </ThemedText>
+          )}
+
+          {/* Botones de acción */}
+          <View style={styles.actionRow}>
+            <Pressable 
+              style={[styles.btn, styles.btnCancel, { borderColor: theme.border }]} 
+              onPress={() => refetch()}
+            >
+              <ThemedText style={{ color: theme.textSecondary }}>Reestablecer</ThemedText>
+            </Pressable>
+
+            <Pressable 
+              style={[styles.btn, styles.btnSave, { backgroundColor: AstroBarColors.primary }]} 
+              onPress={handleSaveSettings}
+            >
+              <ThemedText style={styles.btnSaveText}>Guardar Cambios</ThemedText>
+            </Pressable>
+          </View>
+        </Animated.View>
       </ScrollView>
     </ThemedView>
   );
 }
 
-// Objeto de estilos base que tenías abajo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   topNav: {
     flexDirection: "row",
@@ -333,11 +364,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   businessCard: {
-    marginHorizontal: Spacing.lg,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
@@ -353,24 +382,66 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.lg,
   },
-  productRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Spacing.sm,
+  form: {
+    marginTop: Spacing.xs,
+  },
+  label: {
+    fontWeight: "600",
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
     borderRadius: BorderRadius.sm,
-    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    fontSize: 15,
   },
-  productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: BorderRadius.xs,
+  textArea: {
+    height: 80,
+    paddingTop: Spacing.sm,
+    textAlignVertical: "top",
   },
-  productInfo: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-  },
-  availabilityToggle: {
+  geoButton: {
     flexDirection: "row",
+    height: 44,
+    borderRadius: BorderRadius.sm,
+    justifyContent: "center",
     alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  geoButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  geoSuccess: {
+    color: "#4CAF50",
+    marginTop: Spacing.xs,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: Spacing.xl,
+    gap: Spacing.md,
+  },
+  btn: {
+    flex: 1,
+    height: 48,
+    borderRadius: BorderRadius.sm,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  btnCancel: {
+    borderWidth: 1,
+  },
+  btnSave: {
+    elevation: 2,
+  },
+  btnSaveText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
 });
