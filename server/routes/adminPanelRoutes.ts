@@ -284,3 +284,57 @@ router.get("/alerts", async (req, res) => {
 });
 
 export default router;
+// ==================== ENDPOINTS PARA COMPATIBILIDAD CON FRONTEND ====================
+
+// 1. Métrica de los cuadraditos del Dashboard principal
+router.get("/dashboard/metrics", async (req, res) => {
+  try {
+    // Contamos usuarios totales de la tabla users
+    const [totalUsers] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    
+    // Contamos negocios totales (Bares) de la tabla businesses
+    const [totalBars] = await db.select({ count: sql<number>`count(*)` }).from(businesses);
+    
+    // Dejamos en 0 o contamos promociones/cupones si tenés la tabla (la seteamos en cero base por ahora)
+    const promotionsCount = 0; 
+    const acceptanceRate = 100; // Valor de prueba para el porcentaje de aceptación
+
+    // Le respondemos al frontend con los nombres exactos de variables que espera recibir
+    res.json({
+      usersCount: totalUsers.count,
+      businessesCount: totalBars.count,
+      promotionsCount: promotionsCount,
+      acceptanceRate: acceptanceRate
+    });
+  } catch (error) {
+    console.error("Error en /dashboard/metrics:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// 2. Pedidos activos del Dashboard (Pestaña principal)
+router.get("/dashboard/active-orders", async (req, res) => {
+  try {
+    // Traemos los pedidos que no estén completados ni cancelados
+    const activeOrdersList = await db.select()
+      .from(orders)
+      .where(sql`status NOT IN ('delivered', 'cancelled')`)
+      .orderBy(desc(orders.createdAt));
+
+    res.json({ orders: activeOrdersList });
+  } catch (error) {
+    console.error("Error en /dashboard/active-orders:", error);
+    res.json({ orders: [] });
+  }
+});
+
+// 3. Repartidores en línea
+router.get("/dashboard/online-drivers", async (req, res) => {
+  try {
+    // Por ahora devolvemos un array vacío para que no rompa el promise.all del front
+    res.json({ drivers: [] });
+  } catch (error) {
+    console.error("Error en /dashboard/online-drivers:", error);
+    res.json({ drivers: [] });
+  }
+});
