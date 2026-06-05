@@ -18,8 +18,8 @@ import { User, UserRole } from "@/types";
 import { ThemedText } from "@/components/ThemedText";
 import { AstroBarColors } from "@/constants/theme";
 
-// 🪐 CORRECCIÓN DE RUTA RELATIVA:
-import astrobarLogoImg from "../assets/astrobarlogo.jpg";
+// 🪐 JERARQUÍA REAL DESDE CONTEXTS: Subir dos niveles hasta la raíz del proyecto
+import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
