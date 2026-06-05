@@ -162,8 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setPendingVerificationPhone(pendingPhone);
       }
       
-      // 🔥 Forzamos un delay artificial mínimo de 1.5 segundos para que la animación premium
-      // del Splash luzca espectacular y no parpadee bruscamente al abrir la app.
+      // 🔥 Delay artificial para que el Splash Screen luzca espectacular
       await new Promise((resolve) => setTimeout(resolve, 1600));
 
     } catch (error) {
@@ -371,7 +370,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     transform: [{ translateY: textY.value }],
   }));
 
-  // 🚀 INTERCEPCIÓN DE CARGA: Renderiza el Splash Screen Premium de AstroBar en vivo
+  // 🚀 CORRECCIÓN CLAVE: Usamos el alias global '@/assets' para blindar la build de EAS
   if (isLoading) {
     return (
       <View style={styles.splashContainer}>
@@ -381,7 +380,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ))}
         <View style={styles.centerContent}>
           <Animated.View style={[styles.logoWrapper, logoStyle]}>
-            <Image source={require("../assets/astrobarlogo.jpg")} style={styles.logo} contentFit="cover" />
+            <Image source={require("@/assets/astrobarlogo.jpg")} style={styles.logo} contentFit="cover" />
           </Animated.View>
           <Animated.View style={[styles.textWrapper, textStyle]}>
             <ThemedText style={styles.titleText}>ASTRO BAR</ThemedText>
