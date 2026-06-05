@@ -19,6 +19,13 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  withDelay 
+} from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
@@ -31,7 +38,7 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
 
-const { width: screenWidth } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface FeaturedBusiness {
   id: string;
@@ -48,6 +55,42 @@ type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Login">;
 };
 
+// Componente para renderizar y animar cada estrella en el espacio exterior
+function StarParticle({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
+  const opacity = useSharedValue(0.15);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withTiming(0.9, { duration: 1200 + Math.random() * 1000 }),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.star,
+        animatedStyle,
+        {
+          left: x,
+          top: y,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+        },
+      ]}
+    />
+  );
+}
+
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const { theme } = useTheme();
   const {
@@ -60,7 +103,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
 
-  const [loginMode, setLoginMode] = useState<"sms" | "password">("sms");
+  // CORRECCIÓN: Ahora arranca por defecto en modo contraseña
+  const [loginMode, setLoginMode] = useState<"sms" | "password">("password");
   const [phone, setPhone] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -70,11 +114,25 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [errors, setErrors] = useState<{ phone?: string; identifier?: string; password?: string }>({});
   const [featuredBusinesses, setFeaturedBusinesses] = useState<FeaturedBusiness[]>([]);
   const [showBiometricOption, setShowBiometricOption] = useState(false);
+  const [starList, setStarList] = useState<{ id: number; x: number; y: number; size: number; delay: number }[]>([]);
 
   useEffect(() => {
     fetchFeaturedBusinesses();
     checkBiometricLogin();
+    generateConstellation();
   }, []);
+
+  // Generación del mapa de estrellas de fondo
+  const generateConstellation = () => {
+    const generated = Array.from({ length: 45 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * SCREEN_WIDTH,
+      y: Math.random() * (SCREEN_HEIGHT * 0.75),
+      size: Math.random() * 2.5 + 1,
+      delay: Math.random() * 1800,
+    }));
+    setStarList(generated);
+  };
 
   const fetchFeaturedBusinesses = async () => {
     try {
@@ -164,11 +222,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <ImageBackground source={astrobarBgImage} style={styles.container} resizeMode="cover">
-      {/* Overlay con degradado espacial */}
+      {/* Overlay con degradado espacial profundo */}
       <LinearGradient 
-        colors={['rgba(15, 23, 42, 0.8)', 'rgba(30, 27, 75, 0.7)', 'rgba(88, 28, 135, 0.5)']}
+        colors={['rgba(11, 17, 30, 0.85)', 'rgba(15, 23, 42, 0.75)', 'rgba(49, 46, 129, 0.45)']}
         style={StyleSheet.absoluteFill}
       />
+
+      {/* Partículas de estrellas titilantes en el cielo de fondo */}
+      {starList.map((star) => (
+        <StarParticle key={star.id} x={star.x} y={star.y} size={star.size} delay={star.delay} />
+      ))}
 
       <View style={[styles.themeToggleContainer, { top: insets.top + Spacing.md }]}>
         <ThemeToggleButton />
@@ -193,43 +256,41 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <ThemedText type="body" style={styles.slogan}>Conectando bares con usuarios</ThemedText>
           </View>
 
-          <BlurView intensity={40} tint="dark" style={[styles.formCard, Shadows.lg]}>
-            <ThemedText type="h3" style={styles.formTitle}>Bienvenido a AstroBar</ThemedText>
-            <ThemedText type="body" style={styles.formSubtitle}>
-              {loginMode === "password" 
-                ? "Usa tu correo o teléfono con contraseña" 
-                : "Te enviaremos un código SMS para verificar"}
-            </ThemedText>
+          <BlurView intensity={35} tint="dark" style={[styles.formCard, Shadows.lg]}>
+            <BaseFormTitle loginMode={loginMode} />
 
             {loginMode === "password" ? (
               <>
                 <View style={styles.inputWrapper}>
                   <ThemedText type="small" style={styles.inputLabel}>Correo o teléfono</ThemedText>
                   <View style={[styles.inputBox, errors.identifier ? styles.inputBoxError : null]}>
-                    <Feather name="user" size={20} color="#BBB" style={styles.inputBoxIcon} />
+                    <Feather name="user" size={18} color="#00f2fe" style={styles.inputBoxIcon} />
                     <TextInput
                       placeholder="correo@ejemplo.com"
                       value={identifier}
                       onChangeText={(text) => setIdentifier(text)}
-                      placeholderTextColor="#777"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
+                      autoCapitalize="none"
+                      autoCorrect={false}
                     />
                   </View>
                 </View>
                 <View style={styles.inputWrapper}>
                   <ThemedText type="small" style={styles.inputLabel}>Contraseña</ThemedText>
                   <View style={[styles.inputBox, errors.password ? styles.inputBoxError : null]}>
-                    <Feather name="lock" size={20} color="#BBB" style={styles.inputBoxIcon} />
+                    <Feather name="lock" size={18} color="#00f2fe" style={styles.inputBoxIcon} />
                     <TextInput
                       placeholder="Tu contraseña"
                       value={password}
                       secureTextEntry={!showPassword}
                       onChangeText={(text) => setPassword(text)}
-                      placeholderTextColor="#777"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
+                      autoCapitalize="none"
                     />
                     <Pressable onPress={() => setShowPassword(!showPassword)}>
-                      <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#BBB" />
+                      <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="#94a3b8" />
                     </Pressable>
                   </View>
                 </View>
@@ -242,15 +303,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                     <ThemedText type="body" style={styles.countryCodeText}>+54</ThemedText>
                   </View>
                   <View style={styles.inputBox}>
-                    <Feather name="phone" size={20} color="#BBB" style={styles.inputBoxIcon} />
+                    <Feather name="phone" size={18} color="#00f2fe" style={styles.inputBoxIcon} />
                     <TextInput
                       placeholder="11 97 123 4567"
                       value={formatPhoneDisplay(phone)}
                       onChangeText={handlePhoneChange}
                       keyboardType="phone-pad"
-                      placeholderTextColor="#777"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
-                      maxLength={12}
+                      maxLength={14}
                     />
                   </View>
                 </View>
@@ -265,18 +326,21 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <ThemedText style={{color: '#FFF', fontWeight: 'bold'}}>
+                <ThemedText style={{color: '#FFF', fontWeight: 'bold', fontSize: 15}}>
                   {loginMode === "password" ? "Iniciar sesión" : "Enviar código SMS"}
                 </ThemedText>
               )}
             </Button>
 
             <Pressable
-              onPress={() => setLoginMode(loginMode === "password" ? "sms" : "password")}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setLoginMode(loginMode === "password" ? "sms" : "password");
+              }}
               style={styles.switchModeButton}
             >
               <ThemedText type="small" style={styles.switchModeText}>
-                {loginMode === "password" ? "Iniciar con código SMS" : "Iniciar con contraseña"}
+                {loginMode === "password" ? "Usar código SMS alternativo" : "Iniciar con correo y contraseña"}
               </ThemedText>
             </Pressable>
           </BlurView>
@@ -293,73 +357,90 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   );
 }
 
+// Componente optimizado para los textos de cabecera de la tarjeta
+function BaseFormTitle({ loginMode }: { loginMode: "sms" | "password" }) {
+  return (
+    <>
+      <ThemedText type="h3" style={styles.formTitle}>Bienvenido a AstroBar</ThemedText>
+      <ThemedText type="body" style={styles.formSubtitle}>
+        {loginMode === "password" 
+          ? "Usa tu correo o teléfono con contraseña" 
+          : "Te enviaremos un código SMS para verificar"}
+      </ThemedText>
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  star: { position: "absolute", backgroundColor: "#FFFFFF", shadowColor: "#FFFFFF", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 2 },
   themeToggleContainer: {
     position: "absolute",
     right: Spacing.lg,
     zIndex: 10,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 20,
   },
   overlay: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: Spacing.xl },
-  logoContainer: { alignItems: "center", marginBottom: Spacing.xl },
-  logo: { width: 100, height: 100, marginBottom: Spacing.sm, borderRadius: 50 },
-  appName: { color: "#FFFFFF", textShadowColor: AstroBarColors.primary, textShadowRadius: 10 },
-  slogan: { color: AstroBarColors.primary, fontWeight: "500", marginTop: 5 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: Spacing.xl, justifyContent: 'center' },
+  logoContainer: { alignItems: "center", marginBottom: Spacing.lg, marginTop: Spacing.sm },
+  logo: { width: 94, height: 94, marginBottom: Spacing.xs, borderRadius: 47, borderWidth: 2, borderColor: '#00f2fe' },
+  appName: { color: "#FFFFFF", textShadowColor: '#00f2fe', textShadowRadius: 8, fontWeight: '900' },
+  slogan: { color: "#94a3b8", fontWeight: "600", marginTop: 2, fontSize: 13 },
   formCard: {
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    overflow: 'hidden'
   },
-  formTitle: { textAlign: "center", color: "#FFF", marginBottom: Spacing.xs },
-  formSubtitle: { textAlign: "center", color: "#BBB", marginBottom: Spacing.lg },
+  formTitle: { textAlign: "center", color: "#FFF", marginBottom: Spacing.xs, fontWeight: '800' },
+  formSubtitle: { textAlign: "center", color: "#94a3b8", marginBottom: Spacing.xl, fontSize: 13, fontWeight: '500' },
   inputWrapper: { marginBottom: Spacing.md },
-  inputLabel: { color: "#EEE", fontWeight: "600", marginBottom: Spacing.xs },
+  inputLabel: { color: "#cbd5e1", fontWeight: "600", marginBottom: 6, fontSize: 13 },
   phoneInputContainer: { flexDirection: "row", gap: Spacing.sm },
   countryCode: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-    height: 52,
+    borderColor: "rgba(255,255,255,0.15)",
+    height: 48,
   },
-  countryCodeText: { color: "#FFF", fontWeight: "600" },
+  countryCodeText: { color: "#FFF", fontWeight: "700" },
   inputBox: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(255,255,255,0.15)",
     paddingHorizontal: Spacing.md,
-    height: 52,
+    height: 48,
   },
-  inputBoxIcon: { marginRight: Spacing.sm },
-  textInput: { flex: 1, fontSize: 16, color: "#FFF" },
+  inputBoxIcon: { marginRight: Spacing.xs },
+  textInput: { flex: 1, fontSize: 15, color: "#FFF", fontWeight: '500' },
   inputBoxError: { borderColor: AstroBarColors.error },
   loginButton: { 
-    marginTop: Spacing.sm, 
-    backgroundColor: '#8B5CF6', // Violeta intenso neón
-    height: 52,
+    marginTop: Spacing.xs, 
+    backgroundColor: AstroBarColors.primary,
+    height: 48,
     borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 5
+    shadowColor: AstroBarColors.primary,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4
   },
-  switchModeButton: { marginTop: Spacing.md, alignItems: 'center' },
-  switchModeText: { color: '#A78BFA', fontWeight: "500" },
-  footer: { flexDirection: "row", justifyContent: "center", marginTop: 20 },
-  footerText: { color: "#BBB" },
-  signupLink: { color: '#8B5CF6', fontWeight: "bold", marginLeft: 5 },
+  switchModeButton: { marginTop: Spacing.md, paddingVertical: 4, alignItems: 'center' },
+  switchModeText: { color: '#00f2fe', fontWeight: "700" },
+  footer: { flexDirection: "row", justifyContent: "center", marginTop: Spacing.sm },
+  footerText: { color: "#94a3b8", fontWeight: '500' },
+  signupLink: { color: '#00f2fe', fontWeight: "800", marginLeft: 4 },
 });

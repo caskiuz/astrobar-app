@@ -57,13 +57,16 @@ export default function BusinessManageScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Normalización segura del tema visual
+  // Detección real del modo oscuro para inyectar la estética AstroBar
+  const isDark = rawTheme?.background === "#000000" || rawTheme?.background === "black" || rawTheme?.background === "#121212";
+
+  // Normalización segura y estilizada del tema visual
   const theme = {
-    card: rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF",
-    border: rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0",
-    textSecondary: rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0",
-    surface: rawTheme?.colors?.surface || rawTheme?.card || "#FFFFFF",
-    text: rawTheme?.text || rawTheme?.colors?.text || "#000000",
+    card: isDark ? '#111927' : (rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF"),
+    border: isDark ? '#1f293d' : (rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0"),
+    textSecondary: isDark ? '#94a3b8' : (rawTheme?.textSecondary || rawTheme?.colors?.textSecondary || "#A0A0A0"),
+    surface: isDark ? '#0b111e' : (rawTheme?.colors?.surface || rawTheme?.card || "#FFFFFF"),
+    text: isDark ? '#ffffff' : (rawTheme?.text || rawTheme?.colors?.text || "#000000"),
   };
 
   const [editMode, setEditMode] = useState(false);
@@ -86,7 +89,6 @@ export default function BusinessManageScreen() {
     enabled: !!user?.id,
   });
 
-  // CORRECCIÓN: El switch ahora le pega a la ruta de business propia del dueño
   const toggleBusinessMutation = useMutation({
     mutationFn: async ({ businessId, isOpen }: { businessId: string; isOpen: boolean }) => {
       await apiRequest("PUT", `/api/business/${businessId}`, {
@@ -210,22 +212,22 @@ export default function BusinessManageScreen() {
 
   if (isLoading) {
     return (
-      <ThemedView style={styles.center}>
+      <ThemedView style={[styles.center, { backgroundColor: theme.surface }]}>
         <ActivityIndicator size="large" color={AstroBarColors.primary} />
       </ThemedView>
     );
   }
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Barra superior de navegación */}
+    <ThemedView style={[styles.container, { backgroundColor: theme.surface, paddingTop: insets.top }]}>
+      {/* Barra superior de navegación unificada */}
       <View style={[styles.topNav, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Pressable
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessPromotions' as never)}
         >
-          <Feather name="megaphone" size={20} color={theme.textSecondary} />
-          <ThemedText style={[styles.navButtonText, { color: theme.textSecondary }]}>Promociones</ThemedText>
+          <Feather name="megaphone" size={18} color={isDark ? '#00f2fe' : AstroBarColors.primary} />
+          <ThemedText style={[styles.navButtonText, { color: isDark ? '#00f2fe' : AstroBarColors.primary, fontWeight: '700' }]}>Promociones</ThemedText>
         </Pressable>
       </View>
 
@@ -234,45 +236,45 @@ export default function BusinessManageScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={AstroBarColors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={isDark ? '#00f2fe' : AstroBarColors.primary} />
         }
       >
         <View style={styles.header}>
-          <ThemedText type="h2">Ajustes del Bar</ThemedText>
+          <ThemedText type="h2" style={{ color: theme.text, fontWeight: '800' }}>Ajustes del Bar</ThemedText>
         </View>
 
-        {/* Card de Estado Abierto/Cerrado */}
-        <View style={[styles.businessCard, { backgroundColor: theme.card }, Shadows.md]}>
+        {/* Card VIP de Estado Abierto/Cerrado */}
+        <View style={[styles.businessCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }, Shadows.md]}>
           <View style={styles.businessRow}>
             <View>
-              <ThemedText type="h3">{business?.name || "Mi Negocio"}</ThemedText>
-              <ThemedText type="caption" style={{ color: business?.isOpen ? "#4CAF50" : "#F44336", marginTop: 4, fontWeight: "bold" }}>
-                {business?.isOpen ? "Abierto" : "Cerrado"}
+              <ThemedText type="h3" style={{ color: theme.text, fontWeight: '700' }}>{business?.name || "Mi Negocio"}</ThemedText>
+              <ThemedText type="caption" style={{ color: business?.isOpen ? "#39ff14" : "#ff4c4c", marginTop: 4, fontWeight: "800", fontSize: 13 }}>
+                {business?.isOpen ? "Abierto ahora" : "Cerrado temporalmente"}
               </ThemedText>
             </View>
             <Switch
               value={business?.isOpen ?? false}
               onValueChange={handleToggleBusiness}
-              trackColor={{ false: "#F44336", true: "#4CAF50" }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: "#4b5563", true: isDark ? '#143a1e' : "#4CAF50" }}
+              thumbColor={business?.isOpen ? "#39ff14" : "#f4f3f4"}
             />
           </View>
         </View>
 
-        {/* FORMULARIO RESTAURADO */}
+        {/* FORMULARIO COMERCIAL OPTIMIZADO */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.form}>
-          <ThemedText type="body" style={styles.label}>Nombre del Bar *</ThemedText>
+          <ThemedText type="body" style={[styles.label, { color: theme.text }]}>Nombre del Bar *</ThemedText>
           <TextInput
-            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, { backgroundColor: isDark ? '#162235' : theme.card, color: theme.text, borderColor: theme.border }]}
             value={businessName}
             onChangeText={setBusinessName}
             placeholder="Ej. Astro Bar"
             placeholderTextColor={placeholderTextColor}
           />
 
-          <ThemedText type="body" style={styles.label}>Descripción</ThemedText>
+          <ThemedText type="body" style={[styles.label, { color: theme.text }]}>Descripción</ThemedText>
           <TextInput
-            style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, styles.textArea, { backgroundColor: isDark ? '#162235' : theme.card, color: theme.text, borderColor: theme.border }]}
             value={businessDescription}
             onChangeText={setBusinessDescription}
             placeholder="Contale a tus clientes sobre tu bar..."
@@ -281,9 +283,9 @@ export default function BusinessManageScreen() {
             numberOfLines={3}
           />
 
-          <ThemedText type="body" style={styles.label}>Teléfono de Contacto</ThemedText>
+          <ThemedText type="body" style={[styles.label, { color: theme.text }]}>Teléfono de Contacto</ThemedText>
           <TextInput
-            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, { backgroundColor: isDark ? '#162235' : theme.card, color: theme.text, borderColor: theme.border }]}
             value={businessPhone}
             onChangeText={setBusinessPhone}
             placeholder="Ej. 1123456789"
@@ -291,9 +293,9 @@ export default function BusinessManageScreen() {
             keyboardType="phone-pad"
           />
 
-          <ThemedText type="body" style={styles.label}>Dirección física *</ThemedText>
+          <ThemedText type="body" style={[styles.label, { color: theme.text }]}>Dirección física *</ThemedText>
           <TextInput
-            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, { backgroundColor: isDark ? '#0d1527' : '#eceff1', color: theme.text, borderColor: theme.border, opacity: 0.85 }]}
             value={businessAddress}
             onChangeText={setBusinessAddress}
             placeholder="Dirección del local"
@@ -301,28 +303,28 @@ export default function BusinessManageScreen() {
             editable={false}
           />
 
-          {/* Botón de GPS */}
+          {/* Botón de GPS Estilizado */}
           <Pressable 
             style={[styles.geoButton, { backgroundColor: AstroBarColors.primary }]} 
             onPress={handlePickLocation}
           >
-            <Feather name="map-pin" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Feather name="map-pin" size={15} color="#FFFFFF" style={{ marginRight: 8 }} />
             <ThemedText style={styles.geoButtonText}>Obtener Ubicación por GPS</ThemedText>
           </Pressable>
 
           {businessLat && businessLng && (
-            <ThemedText type="caption" style={styles.geoSuccess}>
+            <ThemedText type="caption" style={[styles.geoSuccess, { color: '#39ff14', fontWeight: '700', marginTop: Spacing.sm }]}>
               ✓ Coordenadas fijadas: ({businessLat.toFixed(4)}, {businessLng.toFixed(4)})
             </ThemedText>
           )}
 
-          {/* Botones de acción */}
+          {/* Botones de acción inferiores */}
           <View style={styles.actionRow}>
             <Pressable 
-              style={[styles.btn, styles.btnCancel, { borderColor: theme.border }]} 
+              style={[styles.btn, styles.btnCancel, { borderColor: theme.border, backgroundColor: isDark ? '#111927' : 'transparent' }]} 
               onPress={() => refetch()}
             >
-              <ThemedText style={{ color: theme.textSecondary }}>Reestablecer</ThemedText>
+              <ThemedText style={{ color: theme.textSecondary, fontWeight: '700' }}>Restablecer</ThemedText>
             </Pressable>
 
             <Pressable 
@@ -339,109 +341,26 @@ export default function BusinessManageScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  topNav: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-  },
-  navButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  navButtonText: {
-    marginLeft: Spacing.xs,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  header: {
-    paddingVertical: Spacing.sm,
-  },
-  businessCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-  },
-  businessRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-  },
-  form: {
-    marginTop: Spacing.xs,
-  },
-  label: {
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
-    marginTop: Spacing.sm,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.md,
-    fontSize: 15,
-  },
-  textArea: {
-    height: 80,
-    paddingTop: Spacing.sm,
-    textAlignVertical: "top",
-  },
-  geoButton: {
-    flexDirection: "row",
-    height: 44,
-    borderRadius: BorderRadius.sm,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: Spacing.md,
-  },
-  geoButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  geoSuccess: {
-    color: "#4CAF50",
-    marginTop: Spacing.xs,
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: Spacing.xl,
-    gap: Spacing.md,
-  },
-  btn: {
-    flex: 1,
-    height: 48,
-    borderRadius: BorderRadius.sm,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  btnCancel: {
-    borderWidth: 1,
-  },
-  btnSave: {
-    elevation: 2,
-  },
-  btnSaveText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
+  container: { flex: 1 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  topNav: { flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderBottomWidth: 1 },
+  navButton: { flexDirection: "row", alignItems: "center", backgroundColor: 'rgba(0, 242, 254, 0.08)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14 },
+  navButtonText: { marginLeft: Spacing.xs, fontSize: 13 },
+  header: { paddingVertical: Spacing.xs, marginBottom: Spacing.xs },
+  businessCard: { padding: Spacing.md, borderRadius: BorderRadius.lg, marginBottom: Spacing.md },
+  businessRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: Spacing.lg },
+  form: { marginTop: Spacing.xs },
+  label: { fontWeight: "700", marginBottom: 6, marginTop: Spacing.sm, fontSize: 14 },
+  input: { height: 48, borderWidth: 1, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, fontSize: 15, fontWeight: '500' },
+  textArea: { height: 84, paddingTop: Spacing.sm, textAlignVertical: "top" },
+  geoButton: { flexDirection: "row", height: 46, borderRadius: BorderRadius.md, justifyContent: "center", alignItems: "center", marginTop: Spacing.md, ...Shadows.sm },
+  geoButtonText: { color: "#FFFFFF", fontWeight: "700", fontSize: 14 },
+  geoSuccess: { marginTop: Spacing.xs, textAlign: "center" },
+  actionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: Spacing.xl, gap: Spacing.md },
+  btn: { flex: 1, height: 46, borderRadius: BorderRadius.md, justifyContent: "center", alignItems: "center" },
+  btnCancel: { borderWidth: 1 },
+  btnSave: { elevation: 2, ...Shadows.sm },
+  btnSaveText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
 });
