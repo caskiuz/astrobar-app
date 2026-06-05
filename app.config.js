@@ -4,10 +4,10 @@ export default {
     slug: "astrobar-v2",
     version: "1.0.0",
     orientation: "portrait",
-    /* 🚀 CAMBIO 1: Cambiado a icon.png */
-    icon: "./assets/icon.png",
+    /* 🪐 LOGO PRINCIPAL DE LA APP */
+    icon: "./assets/astrobarlogo.jpg",
     scheme: "astrobar",
-    userInterfaceStyle: "automatic",
+    userInterfaceStyle: "dark", // Forzamos modo oscuro nativo desde el arranque
     newArchEnabled: true,
     ios: {
       supportsTablet: true,
@@ -18,9 +18,10 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        backgroundColor: "#8B5CF6",
-        /* 🚀 CAMBIO 2: Cambiado a icon.png */
-        foregroundImage: "./assets/icon.png"
+        /* 🌌 CORRECCIÓN 1: Eliminamos el violeta #8B5CF6 y ponemos el color espacial oscuro */
+        backgroundColor: "#05080f",
+        /* 🪐 CORRECCIÓN 2: El ícono del teléfono pasa a ser el logo oficial del bar */
+        foregroundImage: "./assets/astrobarlogo.jpg"
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
@@ -33,17 +34,17 @@ export default {
     },
     web: {
       output: "single",
-      /* 🚀 CAMBIO 3: Cambiado a icon.png */
-      favicon: "./assets/icon.png"
+      favicon: "./assets/astrobarlogo.jpg"
     },
     plugins: [
       [
         "expo-splash-screen",
         {
-          /* 🚀 CAMBIO 4: Cambiado a icon.png para la pantalla de carga */
-          "image": "./assets/icon.png",
+          /* 🪐 CORRECCIÓN 3: Reemplazamos icon.png por el logo oficial en el Splash nativo */
+          "image": "./assets/astrobarlogo.jpg",
           "resizeMode": "contain",
-          "backgroundColor": "#0c0d14"
+          /* 🌌 CORRECCIÓN 4: Fondo unificado con el color exacto con el que arranca nuestra animación */
+          "backgroundColor": "#05080f"
         }
       ],
       "expo-web-browser",
