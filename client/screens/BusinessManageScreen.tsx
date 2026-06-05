@@ -57,10 +57,8 @@ export default function BusinessManageScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Detección real del modo oscuro para inyectar la estética AstroBar
   const isDark = rawTheme?.background === "#000000" || rawTheme?.background === "black" || rawTheme?.background === "#121212";
 
-  // Normalización segura y estilizada del tema visual
   const theme = {
     card: isDark ? '#111927' : (rawTheme?.card || rawTheme?.colors?.card || "#FFFFFF"),
     border: isDark ? '#1f293d' : (rawTheme?.border || rawTheme?.colors?.border || "#E0E0E0"),
@@ -127,33 +125,6 @@ export default function BusinessManageScreen() {
     }
   }, [business]);
 
-  const handlePickImage = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Necesitamos acceso a tus fotos");
-        return;
-      }
-      setUploadingImage(true);
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [16, 9],
-        quality: 0.7,
-        base64: true,
-      });
-      if (!result.canceled && result.assets[0]) {
-        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        setBusinessImage(base64Image);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-    } catch (error) {
-      Alert.alert("Error", "No se pudo seleccionar la imagen");
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const handlePickLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -213,21 +184,25 @@ export default function BusinessManageScreen() {
   if (isLoading) {
     return (
       <ThemedView style={[styles.center, { backgroundColor: theme.surface }]}>
-        <ActivityIndicator size="large" color={AstroBarColors.primary} />
+        <ActivityIndicator size="large" color="#00f2fe" />
       </ThemedView>
     );
   }
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.surface, paddingTop: insets.top }]}>
-      {/* Barra superior de navegación unificada */}
+      
+      {/* 🪐 CAMBIO GLOBAL: Barra superior de navegación unificada en cian neón */}
       <View style={[styles.topNav, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Pressable
-          style={styles.navButton}
+          style={({ pressed }) => [
+            styles.navButton,
+            { backgroundColor: pressed ? "rgba(0, 242, 254, 0.15)" : "rgba(0, 242, 254, 0.08)" }
+          ]}
           onPress={() => navigation.navigate('BusinessPromotions' as never)}
         >
-          <Feather name="megaphone" size={18} color={isDark ? '#00f2fe' : AstroBarColors.primary} />
-          <ThemedText style={[styles.navButtonText, { color: isDark ? '#00f2fe' : AstroBarColors.primary, fontWeight: '700' }]}>Promociones</ThemedText>
+          <Feather name="megaphone" size={16} color="#00f2fe" />
+          <ThemedText style={styles.navButtonText}>Promociones</ThemedText>
         </Pressable>
       </View>
 
@@ -236,7 +211,7 @@ export default function BusinessManageScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={isDark ? '#00f2fe' : AstroBarColors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#00f2fe" />
         }
       >
         <View style={styles.header}>
@@ -255,13 +230,13 @@ export default function BusinessManageScreen() {
             <Switch
               value={business?.isOpen ?? false}
               onValueChange={handleToggleBusiness}
-              trackColor={{ false: "#4b5563", true: isDark ? '#143a1e' : "#4CAF50" }}
-              thumbColor={business?.isOpen ? "#39ff14" : "#f4f3f4"}
+              trackColor={{ false: "#4b5563", true: "rgba(0, 242, 254, 0.25)" }}
+              thumbColor={business?.isOpen ? "#00f2fe" : "#f4f3f4"}
             />
           </View>
         </View>
 
-        {/* FORMULARIO COMERCIAL OPTIMIZADO */}
+        {/* Formulario */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.form}>
           <ThemedText type="body" style={[styles.label, { color: theme.text }]}>Nombre del Bar *</ThemedText>
           <TextInput
@@ -303,13 +278,16 @@ export default function BusinessManageScreen() {
             editable={false}
           />
 
-          {/* Botón de GPS Estilizado */}
+          {/* 🪐 BOTÓN GPS PURGADO Y CONVERTIDO A CIAN NEÓN */}
           <Pressable 
-            style={[styles.geoButton, { backgroundColor: AstroBarColors.primary }]} 
+            style={({ pressed }) => [
+              styles.geoButtonNative,
+              { backgroundColor: pressed ? "rgba(0, 242, 254, 0.85)" : "#00f2fe" }
+            ]} 
             onPress={handlePickLocation}
           >
-            <Feather name="map-pin" size={15} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <ThemedText style={styles.geoButtonText}>Obtener Ubicación por GPS</ThemedText>
+            <Feather name="map-pin" size={15} color="#05080f" style={{ marginRight: 8 }} />
+            <ThemedText style={styles.geoButtonTextNative}>Obtener Ubicación por GPS</ThemedText>
           </Pressable>
 
           {businessLat && businessLng && (
@@ -318,20 +296,31 @@ export default function BusinessManageScreen() {
             </ThemedText>
           )}
 
-          {/* Botones de acción inferiores */}
+          {/* 🪐 BOTONES DE ACCIÓN ACCESIBLES SIN TEXTO RECORTADO */}
           <View style={styles.actionRow}>
             <Pressable 
-              style={[styles.btn, styles.btnCancel, { borderColor: theme.border, backgroundColor: isDark ? '#111927' : 'transparent' }]} 
+              style={({ pressed }) => [
+                styles.btnNative, 
+                styles.btnCancelNative, 
+                { 
+                  borderColor: theme.border, 
+                  backgroundColor: pressed ? "rgba(255,255,255,0.05)" : (isDark ? '#111927' : 'transparent') 
+                }
+              ]} 
               onPress={() => refetch()}
             >
-              <ThemedText style={{ color: theme.textSecondary, fontWeight: '700' }}>Restablecer</ThemedText>
+              <ThemedText style={[styles.btnCancelTextNative, { color: theme.textSecondary }]}>Restablecer</ThemedText>
             </Pressable>
 
             <Pressable 
-              style={[styles.btn, styles.btnSave, { backgroundColor: AstroBarColors.primary }]} 
+              style={({ pressed }) => [
+                styles.btnNative, 
+                styles.btnSaveNative, 
+                { backgroundColor: pressed ? "rgba(0, 242, 254, 0.85)" : "#00f2fe" }
+              ]} 
               onPress={handleSaveSettings}
             >
-              <ThemedText style={styles.btnSaveText}>Guardar Cambios</ThemedText>
+              <ThemedText style={styles.btnSaveTextNative}>Guardar Cambios</ThemedText>
             </Pressable>
           </View>
         </Animated.View>
@@ -344,8 +333,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   topNav: { flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderBottomWidth: 1 },
-  navButton: { flexDirection: "row", alignItems: "center", backgroundColor: 'rgba(0, 242, 254, 0.08)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14 },
-  navButtonText: { marginLeft: Spacing.xs, fontSize: 13 },
+  navButton: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 8, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: "rgba(0, 242, 254, 0.2)" },
+  navButtonText: { marginLeft: Spacing.xs, fontSize: 13, color: '#00f2fe', fontWeight: '800', letterSpacing: 0.5 },
   header: { paddingVertical: Spacing.xs, marginBottom: Spacing.xs },
   businessCard: { padding: Spacing.md, borderRadius: BorderRadius.lg, marginBottom: Spacing.md },
   businessRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -355,12 +344,28 @@ const styles = StyleSheet.create({
   label: { fontWeight: "700", marginBottom: 6, marginTop: Spacing.sm, fontSize: 14 },
   input: { height: 48, borderWidth: 1, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, fontSize: 15, fontWeight: '500' },
   textArea: { height: 84, paddingTop: Spacing.sm, textAlignVertical: "top" },
-  geoButton: { flexDirection: "row", height: 46, borderRadius: BorderRadius.md, justifyContent: "center", alignItems: "center", marginTop: Spacing.md, ...Shadows.sm },
-  geoButtonText: { color: "#FFFFFF", fontWeight: "700", fontSize: 14 },
+  
+  // 🔮 REESTRUCTURACIÓN DE BOTÓN GPS NATIVO PREMIUM
+  geoButtonNative: { 
+    flexDirection: "row", 
+    height: 50, 
+    borderRadius: BorderRadius.md, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    marginTop: Spacing.md, 
+    shadowColor: "#00f2fe",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4 
+  },
+  geoButtonTextNative: { color: "#05080f", fontWeight: "900", fontSize: 14, letterSpacing: 0.5, includeFontPadding: false, textAlignVertical: "center" },
   geoSuccess: { marginTop: Spacing.xs, textAlign: "center" },
   actionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: Spacing.xl, gap: Spacing.md },
-  btn: { flex: 1, height: 46, borderRadius: BorderRadius.md, justifyContent: "center", alignItems: "center" },
-  btnCancel: { borderWidth: 1 },
-  btnSave: { elevation: 2, ...Shadows.sm },
-  btnSaveText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  
+  // 🔮 REESTRUCTURACIÓN NATIVA DE BOTONES INFERIORES SINFÍN DE RE CORTES
+  btnNative: { flex: 1, height: 50, borderRadius: BorderRadius.md, justifyContent: "center", alignItems: "center" },
+  btnCancelNative: { borderWidth: 1.5 },
+  btnCancelTextNative: { fontWeight: "800", fontSize: 15, includeFontPadding: false, textAlignVertical: "center" },
+  btnSaveNative: { shadowColor: "#00f2fe", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  btnSaveTextNative: { color: "#05080f", fontWeight: "900", fontSize: 15, letterSpacing: 0.5, includeFontPadding: false, textAlignVertical: "center" },
 });

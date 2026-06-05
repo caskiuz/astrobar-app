@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Share,
   TextInput,
+  Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,10 +16,11 @@ import { RouteProp } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Input } from "@/components/Input";
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +31,8 @@ import { useToast } from "@/contexts/ToastContext";
 
 const foodBgImage = require("../../assets/astrobarfondo.jpeg");
 const PENDING_BUSINESS_DRAFT_KEY = "@AstroBar_pending_business_draft";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 type SignupScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Signup">;
@@ -64,6 +68,40 @@ const BUSINESS_TYPES = [
   { id: "other", name: "Otro" },
 ];
 
+// Componente para renderizar y animar cada estrella en el espacio exterior
+function StarParticle({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
+  const opacity = useSharedValue(0.15);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(withTiming(0.9, { duration: 1200 + Math.random() * 1000 }), -1, true)
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.star,
+        animatedStyle,
+        {
+          left: x,
+          top: y,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+        },
+      ]}
+    />
+  );
+}
+
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withDelay } from "react-native-reanimated";
+
 export default function SignupScreen({ navigation, route }: SignupScreenProps) {
   const { theme } = useTheme();
   const { signup } = useAuth();
@@ -88,6 +126,18 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showUserExistsModal, setShowUserExistsModal] = useState(false);
+  const [starList, setStarList] = useState<{ id: number; x: number; y: number; size: number; delay: number }[]>([]);
+
+  useEffect(() => {
+    const generated = Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * SCREEN_WIDTH,
+      y: Math.random() * SCREEN_HEIGHT,
+      size: Math.random() * 2.5 + 1,
+      delay: Math.random() * 1800,
+    }));
+    setStarList(generated);
+  }, []);
 
   const calculateAge = (dateString: string) => {
     const [day, month, year] = dateString.split('/').map(Number);
@@ -148,13 +198,13 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     }
 
     if (email.trim() && !validateEmail(email)) {
-      newErrors.email = "Ingresa un correo valido";
+      newErrors.email = "Ingresa un correo válido";
     }
 
     if (!password) {
       newErrors.password = "La contraseña es requerida";
     } else if (password.length < 8) {
-      newErrors.password = "Minimo 8 caracteres";
+      newErrors.password = "Mínimo 8 caracteres";
     }
 
     if (password !== confirmPassword) {
@@ -162,9 +212,9 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     }
 
     if (!phone) {
-      newErrors.phone = "El telefono es requerido";
+      newErrors.phone = "El teléfono es requerido";
     } else if (phone.length < 10) {
-      newErrors.phone = "Ingresa 10 digitos";
+      newErrors.phone = "Ingresa 10 dígitos";
     }
 
     if (!birthDate) {
@@ -181,7 +231,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
         newErrors.businessName = "El nombre del negocio es requerido";
       }
       if (!businessAddress.trim()) {
-        newErrors.businessAddress = "La direccion es requerida";
+        newErrors.businessAddress = "La dirección es requerida";
       }
       if (!businessType) {
         newErrors.businessType = "Selecciona el tipo de negocio";
@@ -240,7 +290,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
     try {
       await Share.share({
         message:
-          "Descubre AstroBar - Tu Promociones Nocturnas de confianza en Autl�n. Descubre promociones en bares del mercado con un toque. Descarga ahora: https://AstroBar.replit.app",
+          "Descubre AstroBar - Tu Promociones Nocturnas de confianza. Descubre promociones en bares con un toque. Descarga ahora: https://AstroBar.replit.app",
         title: "AstroBar - Promociones Nocturnas",
       });
     } catch (error) {
@@ -254,6 +304,17 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
       style={styles.container}
       resizeMode="cover"
     >
+      {/* 🌌 Overlay con degradado espacial profundo continuo */}
+      <LinearGradient 
+        colors={['rgba(11, 17, 30, 0.92)', 'rgba(15, 23, 42, 0.85)', 'rgba(5, 8, 15, 0.80)']}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* ✨ Estrellas titilantes de fondo */}
+      {starList.map((star) => (
+        <StarParticle key={star.id} x={star.x} y={star.y} size={star.size} delay={star.delay} />
+      ))}
+
       <View style={styles.overlay}>
         <ScrollView
           contentContainerStyle={[
@@ -272,18 +333,19 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
               style={styles.backButton}
             >
               <View style={styles.backButtonCircle}>
-                <Feather name="arrow-left" size={24} color="#FFFFFF" />
+                <Feather name="arrow-left" size={24} color="#00f2fe" />
               </View>
             </Pressable>
             <ThemedText type="hero" style={styles.title}>
               Crear cuenta
             </ThemedText>
             <ThemedText type="body" style={styles.subtitle}>
-              Registra tu correo, telefono y contrasena
+              Registra tu correo, teléfono y contraseña galáctica
             </ThemedText>
           </View>
 
-          <View style={[styles.formCard, Shadows.lg]}>
+          {/* Tarjeta translúcida Cristal Esmerilado */}
+          <BlurView intensity={35} tint="dark" style={[styles.formCard, Shadows.lg]}>
             <Input
               label="Nombre completo"
               placeholder="Tu nombre"
@@ -323,8 +385,8 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
               >
                 <Feather
                   name="lock"
-                  size={20}
-                  color="#666666"
+                  size={18}
+                  color="#00f2fe"
                   style={styles.inputBoxIcon}
                 />
                 <TextInput
@@ -335,16 +397,16 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                     if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
                   }}
                   secureTextEntry={!showPassword}
-                  placeholderTextColor="#999999"
+                  placeholderTextColor="#64748b"
                   style={styles.textInput}
-                  selectionColor={AstroBarColors.primary}
+                  selectionColor="#00f2fe"
                   testID="input-password"
                 />
                 <Pressable onPress={() => setShowPassword(!showPassword)}>
                   <Feather
                     name={showPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color="#666666"
+                    size={18}
+                    color="#94a3b8"
                   />
                 </Pressable>
               </View>
@@ -367,8 +429,8 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
               >
                 <Feather
                   name="lock"
-                  size={20}
-                  color="#666666"
+                  size={18}
+                  color="#00f2fe"
                   style={styles.inputBoxIcon}
                 />
                 <TextInput
@@ -379,9 +441,9 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                     if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                   }}
                   secureTextEntry={!showPassword}
-                  placeholderTextColor="#999999"
+                  placeholderTextColor="#64748b"
                   style={styles.textInput}
-                  selectionColor={AstroBarColors.primary}
+                  selectionColor="#00f2fe"
                   testID="input-confirm-password"
                 />
               </View>
@@ -410,8 +472,8 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                 >
                   <Feather
                     name="phone"
-                    size={20}
-                    color="#666666"
+                    size={18}
+                    color="#00f2fe"
                     style={styles.inputBoxIcon}
                   />
                   <TextInput
@@ -420,10 +482,10 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                     onChangeText={handlePhoneChange}
                     keyboardType="phone-pad"
                     autoComplete="tel"
-                    placeholderTextColor="#999999"
+                    placeholderTextColor="#64748b"
                     style={styles.textInput}
-                    selectionColor={AstroBarColors.primary}
-                    maxLength={12}
+                    selectionColor="#00f2fe"
+                    maxLength={14}
                     testID="input-phone"
                   />
                 </View>
@@ -450,8 +512,8 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
               >
                 <Feather
                   name="calendar"
-                  size={20}
-                  color="#666666"
+                  size={18}
+                  color="#00f2fe"
                   style={styles.inputBoxIcon}
                 />
                 <TextInput
@@ -459,9 +521,9 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   value={formatDateDisplay(birthDate)}
                   onChangeText={handleDateChange}
                   keyboardType="number-pad"
-                  placeholderTextColor="#999999"
+                  placeholderTextColor="#64748b"
                   style={styles.textInput}
-                  selectionColor={AstroBarColors.primary}
+                  selectionColor="#00f2fe"
                   maxLength={10}
                   testID="input-birthdate"
                 />
@@ -482,7 +544,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   Datos del negocio
                 </ThemedText>
                 <ThemedText type="caption" style={styles.inlineSectionNote}>
-                  Solo lo esencial para empezar. Podras completar mas datos despues.
+                  Solo lo esencial para empezar. Podrás completar más datos después.
                 </ThemedText>
 
                 <View style={styles.inputWrapper}>
@@ -497,12 +559,12 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   >
                     <Feather
                       name="briefcase"
-                      size={20}
-                      color="#666666"
+                      size={18}
+                      color="#00f2fe"
                       style={styles.inputBoxIcon}
                     />
                     <TextInput
-                      placeholder="Ej: Taqueria El Centro"
+                      placeholder="Ej: Astro Club San Telmo"
                       value={businessName}
                       onChangeText={(text) => {
                         setBusinessName(text);
@@ -510,9 +572,9 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                           setErrors((prev) => ({ ...prev, businessName: "" }));
                         }
                       }}
-                      placeholderTextColor="#999999"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
-                      selectionColor={AstroBarColors.primary}
+                      selectionColor="#00f2fe"
                     />
                   </View>
                   {errors.businessName ? (
@@ -564,7 +626,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
                 <View style={styles.inputWrapper}>
                   <ThemedText type="small" style={styles.inputLabel}>
-                    Direccion
+                    Dirección
                   </ThemedText>
                   <View
                     style={[
@@ -574,12 +636,12 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                   >
                     <Feather
                       name="map-pin"
-                      size={20}
-                      color="#666666"
+                      size={18}
+                      color="#00f2fe"
                       style={styles.inputBoxIcon}
                     />
                     <TextInput
-                      placeholder="Calle y numero"
+                      placeholder="Calle y número"
                       value={businessAddress}
                       onChangeText={(text) => {
                         setBusinessAddress(text);
@@ -587,9 +649,9 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                           setErrors((prev) => ({ ...prev, businessAddress: "" }));
                         }
                       }}
-                      placeholderTextColor="#999999"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
-                      selectionColor={AstroBarColors.primary}
+                      selectionColor="#00f2fe"
                     />
                   </View>
                   {errors.businessAddress ? (
@@ -601,13 +663,13 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
                 <View style={styles.inputWrapper}>
                   <ThemedText type="small" style={styles.inputLabel}>
-                    Telefono del negocio (opcional)
+                    Teléfono del negocio (opcional)
                   </ThemedText>
                   <View style={styles.inputBox}>
                     <Feather
                       name="phone"
-                      size={20}
-                      color="#666666"
+                      size={18}
+                      color="#00f2fe"
                       style={styles.inputBoxIcon}
                     />
                     <TextInput
@@ -615,10 +677,10 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                       value={formatPhoneDisplay(businessPhone)}
                       onChangeText={(text) => setBusinessPhone(text.replace(/\D/g, "").slice(0, 10))}
                       keyboardType="phone-pad"
-                      placeholderTextColor="#999999"
+                      placeholderTextColor="#64748b"
                       style={styles.textInput}
-                      selectionColor={AstroBarColors.primary}
-                      maxLength={12}
+                      selectionColor="#00f2fe"
+                      maxLength={14}
                     />
                   </View>
                 </View>
@@ -626,7 +688,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             ) : null}
 
             <Input
-              label="Codigo de referido (opcional)"
+              label="Código de referido (opcional)"
               placeholder="Ej: ABC123"
               leftIcon="gift"
               value={referralCode}
@@ -637,90 +699,102 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
             />
 
             <ThemedText type="small" style={styles.roleLabel}>
-              Como quieres usar AstroBar?
+              ¿Cómo quieres usar AstroBar?
             </ThemedText>
+            
+            {/* 🪐 CONTROL DE ROLES REESTRUCTURADO SIN VIOLETA Y CON CONTORNOS CIAN NEÓN */}
             <View style={styles.rolesContainer}>
-              {ROLES.map((r) => (
-                <Pressable
-                  key={r.value}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setRole(r.value);
-                  }}
-                  style={[
-                    styles.roleCard,
-                    {
-                      backgroundColor:
-                        role === r.value ? AstroBarColors.primaryLight : "#F5F5F5",
-                      borderColor:
-                        role === r.value ? AstroBarColors.primary : "#E0E0E0",
-                      borderWidth: role === r.value ? 2 : 1,
-                    },
-                  ]}
-                  testID={`role-${r.value}`}
-                >
-                  <View
+              {ROLES.map((r) => {
+                const isSelected = role === r.value;
+                return (
+                  <Pressable
+                    key={r.value}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setRole(r.value);
+                    }}
                     style={[
-                      styles.roleIcon,
+                      styles.roleCard,
                       {
-                        backgroundColor:
-                          role === r.value ? AstroBarColors.primary : "#E0E0E0",
+                        backgroundColor: isSelected ? "rgba(0, 242, 254, 0.12)" : "rgba(15, 23, 42, 0.6)",
+                        borderColor: isSelected ? "#00f2fe" : "rgba(255, 255, 255, 0.15)",
+                        borderWidth: isSelected ? 2 : 1.5,
                       },
                     ]}
+                    testID={`role-${r.value}`}
                   >
-                    <Feather
-                      name={r.icon}
-                      size={22}
-                      color={role === r.value ? "#FFFFFF" : "#666666"}
-                    />
-                  </View>
-                  <ThemedText
-                    type="small"
-                    style={{
-                      fontWeight: "600",
-                      textAlign: "center",
-                      color: "#333333",
-                    }}
-                  >
-                    {r.label}
-                  </ThemedText>
-                  <ThemedText
-                    type="caption"
-                    style={{
-                      color: "#666666",
-                      textAlign: "center",
-                      fontSize: 10,
-                    }}
-                  >
-                    {r.description}
-                  </ThemedText>
-                </Pressable>
-              ))}
+                    <View
+                      style={[
+                        styles.roleIcon,
+                        {
+                          backgroundColor: isSelected ? "#00f2fe" : "rgba(255, 255, 255, 0.1)",
+                        },
+                      ]}
+                    >
+                      <Feather
+                        name={r.icon}
+                        size={20}
+                        color={isSelected ? "#05080f" : "#94a3b8"}
+                      />
+                    </View>
+                    <ThemedText
+                      type="small"
+                      style={{
+                        fontWeight: "800",
+                        textAlign: "center",
+                        color: isSelected ? "#00f2fe" : "#cbd5e1",
+                      }}
+                    >
+                      {r.label}
+                    </ThemedText>
+                    <ThemedText
+                      type="caption"
+                      style={{
+                        color: "#94a3b8",
+                        textAlign: "center",
+                        fontSize: 10,
+                        marginTop: 2,
+                      }}
+                    >
+                      {r.description}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
             </View>
 
-<Button
+            {/* 🪐 BOTÓN DE REGISTRO MEJORADO CON PRESSABLE CIAN NEÓN PREMIUM */}
+            <Pressable
               onPress={handleSignup}
               disabled={isLoading}
-              style={styles.signupButton}
+              style={({ pressed }) => [
+                styles.signupButtonNative,
+                {
+                  backgroundColor: pressed ? "rgba(0, 242, 254, 0.85)" : "#00f2fe",
+                  opacity: isLoading ? 0.6 : 1,
+                }
+              ]}
               testID="button-signup"
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color="#05080f" size="small" />
               ) : (
-                "Crear cuenta"
+                <ThemedText style={styles.signupButtonTextNative}>
+                  Crear cuenta
+                </ThemedText>
               )}
-            </Button>
+            </Pressable>
 
             <ThemedText type="caption" style={styles.termsText}>
-              Al registrarte aceptas nuestros terminos y condiciones
+              Al registrarte aceptas nuestros términos y condiciones
             </ThemedText>
-          </View>
+          </BlurView>
 
           <ConfirmModal
             visible={showUserExistsModal}
             title="Cuenta ya registrada"
-            message="Este correo o telefono ya esta registrado. Inicia sesion para continuar."
-            confirmText="Ir a iniciar sesion"
+            message="Este correo o teléfono ya está registrado. Inicia sesión para continuar."
+            confirmText="Ir a iniciar sesión"
             cancelText="Cerrar"
             onConfirm={() => {
               setShowUserExistsModal(false);
@@ -730,7 +804,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
           />
 
           <Pressable onPress={handleShare} style={styles.shareButton}>
-            <Feather name="share-2" size={18} color="#FFFFFF" />
+            <Feather name="share-2" size={18} color="#00f2fe" />
             <ThemedText type="small" style={styles.shareText}>
               Compartir AstroBar
             </ThemedText>
@@ -738,11 +812,11 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 
           <View style={styles.loginLink}>
             <ThemedText type="body" style={styles.loginText}>
-              Ya tienes cuenta?{" "}
+              ¿Ya tienes cuenta?{" "}
             </ThemedText>
             <Pressable onPress={() => navigation.goBack()}>
               <ThemedText type="body" style={styles.loginLinkText}>
-                Inicia sesion
+                Inicia sesión
               </ThemedText>
             </Pressable>
           </View>
@@ -753,192 +827,64 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.xl,
-  },
-  header: {
-    marginBottom: Spacing.lg,
-  },
-  backButton: {
-    marginBottom: Spacing.md,
-  },
-  backButtonCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    color: "#FFFFFF",
-    textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
-  },
-  subtitle: {
-    color: "rgba(255,255,255,0.8)",
-    marginTop: Spacing.xs,
-  },
-  formCard: {
-    backgroundColor: "rgba(255,255,255,0.95)",
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  inputWrapper: {
-    marginBottom: Spacing.md,
-  },
-  inputLabel: {
-    color: "#333333",
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
-  },
-  phoneInputContainer: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
-  countryCode: {
-    backgroundColor: "#F5F5F5",
+  container: { flex: 1 },
+  overlay: { flex: 1 },
+  star: { position: "absolute", backgroundColor: "#FFFFFF" },
+  scrollContent: { paddingHorizontal: Spacing.xl },
+  header: { marginBottom: Spacing.md },
+  backButton: { marginBottom: Spacing.sm },
+  backButtonCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
+  title: { color: "#FFFFFF", fontWeight: "900" },
+  subtitle: { color: "#94a3b8", marginTop: 4, fontSize: 14 },
+  formCard: { borderRadius: BorderRadius.xl, padding: Spacing.lg, marginBottom: Spacing.lg, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(15, 23, 42, 0.4)", overflow: "hidden" },
+  inputWrapper: { marginBottom: Spacing.md },
+  inputLabel: { color: "#cbd5e1", fontWeight: "600", marginBottom: 6, fontSize: 13 },
+  phoneInputContainer: { flexDirection: "row", gap: Spacing.sm },
+  countryCode: { backgroundColor: "rgba(15, 23, 42, 0.6)", borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, justifyContent: "center", alignItems: "center", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.15)", height: 48 },
+  countryCodeText: { color: "#FFF", fontWeight: "700" },
+  inputBox: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "rgba(15, 23, 42, 0.6)", borderRadius: BorderRadius.md, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.15)", paddingHorizontal: Spacing.md, height: 48 },
+  inputBoxError: { borderColor: AstroBarColors.error },
+  inputBoxIcon: { marginRight: Spacing.xs },
+  textInput: { flex: 1, height: "100%", fontSize: 15, color: "#FFF", fontWeight: "500" },
+  inputError: { color: AstroBarColors.error, marginTop: Spacing.xs },
+  phoneHint: { color: "#94a3b8", marginTop: Spacing.xs, fontSize: 11, fontWeight: "500" },
+  roleLabel: { fontWeight: "700", marginBottom: Spacing.sm, color: "#cbd5e1", fontSize: 14 },
+  rolesContainer: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.xl },
+  roleCard: { flex: 1, padding: Spacing.md, borderRadius: BorderRadius.lg, alignItems: "center", shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  roleIcon: { width: 44, height: 44, borderRadius: 22, justifyContent: "center", alignItems: "center", marginBottom: Spacing.xs },
+  inlineSectionTitle: { fontWeight: "800", marginBottom: Spacing.xs, color: "#00f2fe", fontSize: 15, textTransform: "uppercase", letterSpacing: 1 },
+  inlineSectionNote: { color: "#94a3b8", marginBottom: Spacing.sm, fontSize: 12, fontWeight: "500" },
+  businessTypeRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs },
+  businessTypeChip: { paddingVertical: Spacing.xs, paddingHorizontal: Spacing.sm, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(15, 23, 42, 0.4)" },
+  businessTypeChipActive: { borderColor: "#00f2fe", backgroundColor: "rgba(0, 242, 254, 0.15)" },
+  businessTypeChipText: { color: "#cbd5e1", fontWeight: "600" },
+  businessTypeChipTextActive: { color: "#00f2fe", fontWeight: "700" },
+  
+  // 🔮 ESTILOS DEL BOTÓN REGISTRARSE NATIVO PREMIUM
+  signupButtonNative: {
+    marginTop: Spacing.md,
+    height: 50,
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#00f2fe",
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 5
   },
-  countryCodeText: {
-    color: "#333333",
-    fontWeight: "600",
-  },
-  inputBox: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    paddingHorizontal: Spacing.md,
-    height: 52,
-  },
-  inputBoxError: {
-    borderColor: AstroBarColors.error,
-  },
-  inputBoxIcon: {
-    marginRight: Spacing.sm,
-  },
-  textInput: {
-    flex: 1,
-    height: "100%",
+  signupButtonTextNative: {
+    color: '#05080f',
+    fontWeight: '900',
     fontSize: 16,
     letterSpacing: 0.5,
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
-  inputError: {
-    color: AstroBarColors.error,
-    marginTop: Spacing.xs,
-  },
-  phoneHint: {
-    color: "#888888",
-    marginTop: Spacing.xs,
-  },
-  roleLabel: {
-    fontWeight: "600",
-    marginBottom: Spacing.sm,
-    color: "#333333",
-  },
-  rolesContainer: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  roleCard: {
-    flex: 1,
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-  },
-  roleIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.xs,
-  },
-  inlineSectionTitle: {
-    fontWeight: "700",
-    marginBottom: Spacing.xs,
-    color: "#2A225E",
-  },
-  inlineSectionNote: {
-    color: "#5D5A78",
-    marginBottom: Spacing.sm,
-  },
-  roleInlineNote: {
-    color: "#5D5A78",
-    marginBottom: Spacing.md,
-  },
-  businessTypeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.xs,
-  },
-  businessTypeChip: {
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: "#D9D7E8",
-    backgroundColor: "#FFFFFF",
-  },
-  businessTypeChipActive: {
-    borderColor: AstroBarColors.primary,
-    backgroundColor: AstroBarColors.primaryLight,
-  },
-  businessTypeChipText: {
-    color: "#5D5A78",
-    fontWeight: "600",
-  },
-  businessTypeChipTextActive: {
-    color: AstroBarColors.primary,
-    fontWeight: "700",
-  },
-  signupButton: {
-    marginTop: Spacing.xs,
-  },
-  termsText: {
-    textAlign: "center",
-    color: "#888888",
-    marginTop: Spacing.md,
-  },
-  shareButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  shareText: {
-    color: "#FFFFFF",
-    fontWeight: "500",
-  },
-  loginLink: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  loginText: {
-    color: "rgba(255,255,255,0.8)",
-  },
-  loginLinkText: {
-    color: AstroBarColors.primary,
-    fontWeight: "600",
-  },
+  termsText: { textAlign: "center", color: "#94a3b8", marginTop: Spacing.md, fontSize: 11, fontWeight: "500" },
+  shareButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: Spacing.md, gap: Spacing.sm, marginBottom: Spacing.md },
+  shareText: { color: "#00f2fe", fontWeight: "700", fontSize: 14 },
+  loginLink: { flexDirection: "row", justifyContent: "center", marginTop: Spacing.sm },
+  loginText: { color: "#94a3b8", fontWeight: "500" },
+  loginLinkText: { color: "#00f2fe", fontWeight: "800", marginLeft: 4 },
 });

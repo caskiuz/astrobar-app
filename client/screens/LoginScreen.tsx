@@ -28,7 +28,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
-import { Button } from "@/components/Button";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { PlaceholderImage } from "@/components/PlaceholderImage";
 import { useTheme } from "@/hooks/useTheme";
@@ -38,7 +37,7 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
 
-// 🪐 RUTA RELATIVA REAL: Subir dos niveles exactos desde client/screens/
+// 🪐 RUTA RELATIVA REAL COHERENTE CON DOS NIVELES DE SUBIDA
 import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -246,7 +245,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoContainer}>
-            {/* CORRECCIÓN: Ahora consume la imagen estática blindada de forma directa */}
             <Image
               source={astrobarLogoImg}
               style={styles.logo}
@@ -318,19 +316,26 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               </View>
             )}
 
-            <Button
+            {/* 🪐 REESTRUCTURACIÓN NATIVA CON PRESSABLE CIAN NEÓN PREMIUM */}
+            <Pressable
               onPress={loginMode === "password" ? handlePasswordLogin : handlePhoneLogin}
               disabled={isLoading}
-              style={styles.loginButton}
+              style={({ pressed }) => [
+                styles.loginButtonNative,
+                {
+                  backgroundColor: pressed ? "rgba(0, 242, 254, 0.85)" : "#00f2fe",
+                  opacity: isLoading ? 0.6 : 1,
+                }
+              ]}
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color="#05080f" size="small" />
               ) : (
-                <ThemedText style={{color: '#FFF', fontWeight: 'bold', fontSize: 15}}>
+                <ThemedText style={styles.loginButtonTextNative}>
                   {loginMode === "password" ? "Iniciar sesión" : "Enviar código SMS"}
                 </ThemedText>
               )}
-            </Button>
+            </Pressable>
 
             <Pressable
               onPress={() => {
@@ -425,17 +430,27 @@ const styles = StyleSheet.create({
   inputBoxIcon: { marginRight: Spacing.xs },
   textInput: { flex: 1, fontSize: 15, color: "#FFF", fontWeight: '500' },
   inputBoxError: { borderColor: AstroBarColors.error },
-  loginButton: { 
+  
+  // 🔮 ESTILOS DEL BOTÓN NATIVO DE ALTA CALIDAD VISUAL
+  loginButtonNative: { 
     marginTop: Spacing.xs, 
-    backgroundColor: AstroBarColors.primary,
-    height: 48,
+    height: 50, 
     borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: AstroBarColors.primary,
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4
+    shadowColor: "#00f2fe",
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 5
+  },
+  loginButtonTextNative: {
+    color: '#05080f', 
+    fontWeight: '900', 
+    fontSize: 16,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    includeFontPadding: false, 
+    textAlignVertical: 'center',
   },
   switchModeButton: { marginTop: Spacing.md, paddingVertical: 4, alignItems: 'center' },
   switchModeText: { color: '#00f2fe', fontWeight: "700" },
