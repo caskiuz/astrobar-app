@@ -18,6 +18,9 @@ import { User, UserRole } from "@/types";
 import { ThemedText } from "@/components/ThemedText";
 import { AstroBarColors } from "@/constants/theme";
 
+// 🪐 IMPORTACIÓN ESTÁTICA EXCLUSIVA PARA ELIMINAR EL ERROR DE BUNDLE EN EAS
+import astrobarLogoImg from "@/assets/astrobarlogo.jpg";
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface AuthContextType {
@@ -370,7 +373,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     transform: [{ translateY: textY.value }],
   }));
 
-  // 🚀 CORRECCIÓN CLAVE: Usamos el alias global '@/assets' para blindar la build de EAS
+  // 🚀 INTERCEPCIÓN DE CARGA CON IMPORTACIÓN ESTÁTICA BLINDADA PARA METRO
   if (isLoading) {
     return (
       <View style={styles.splashContainer}>
@@ -380,7 +383,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ))}
         <View style={styles.centerContent}>
           <Animated.View style={[styles.logoWrapper, logoStyle]}>
-            <Image source={require("@/assets/astrobarlogo.jpg")} style={styles.logo} contentFit="cover" />
+            <Image source={astrobarLogoImg} style={styles.logo} contentFit="cover" />
           </Animated.View>
           <Animated.View style={[styles.textWrapper, textStyle]}>
             <ThemedText style={styles.titleText}>ASTRO BAR</ThemedText>
