@@ -18,7 +18,7 @@ import { User, UserRole } from "@/types";
 import { ThemedText } from "@/components/ThemedText";
 import { AstroBarColors } from "@/constants/theme";
 
-// 🪐 JERARQUÍA REAL DESDE CONTEXTS: Subir dos niveles hasta la raíz del proyecto
+// 🪐 RUTA RELATIVA REAL: Subir dos niveles exactos desde client/contexts/
 import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");

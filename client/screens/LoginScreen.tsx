@@ -38,8 +38,8 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
 
-// 🪐 JERARQUÍA REAL DESDE SCREENS: Subir dos niveles hasta la raíz del proyecto
-import astrobarLogoImg from "../../../../assets/astrobarlogo.jpg";
+// 🪐 RUTA RELATIVA REAL: Subir dos niveles exactos desde client/screens/
+import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
