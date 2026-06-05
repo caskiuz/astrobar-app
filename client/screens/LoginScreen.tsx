@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   ImageBackground,
-  Image,
   Pressable,
   ActivityIndicator,
   ScrollView,
@@ -19,6 +18,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image"; // Cambiado al componente optimizado de expo-image
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -37,6 +37,9 @@ import { Spacing, BorderRadius, AstroBarColors, Shadows } from "@/constants/them
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
+
+// 🪐 IMPORTACIÓN ESTÁTICA SEGURA PARA BLINDAR LA COMPILACIÓN EN EAS BUILD
+import astrobarLogoImg from "@/assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -103,7 +106,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
 
-  // CORRECCIÓN: Ahora arranca por defecto en modo contraseña
   const [loginMode, setLoginMode] = useState<"sms" | "password">("password");
   const [phone, setPhone] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -122,7 +124,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     generateConstellation();
   }, []);
 
-  // Generación del mapa de estrellas de fondo
   const generateConstellation = () => {
     const generated = Array.from({ length: 45 }).map((_, i) => ({
       id: i,
@@ -222,13 +223,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <ImageBackground source={astrobarBgImage} style={styles.container} resizeMode="cover">
-      {/* Overlay con degradado espacial profundo */}
       <LinearGradient 
         colors={['rgba(11, 17, 30, 0.85)', 'rgba(15, 23, 42, 0.75)', 'rgba(49, 46, 129, 0.45)']}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Partículas de estrellas titilantes en el cielo de fondo */}
       {starList.map((star) => (
         <StarParticle key={star.id} x={star.x} y={star.y} size={star.size} delay={star.delay} />
       ))}
@@ -247,10 +246,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoContainer}>
+            {/* CORRECCIÓN: Ahora consume la imagen estática blindada de forma directa */}
             <Image
-              source={require("../../assets/astrobarlogo.jpg")}
+              source={astrobarLogoImg}
               style={styles.logo}
-              resizeMode="contain"
+              contentFit="contain"
             />
             <ThemedText type="hero" style={styles.appName}>AstroBar</ThemedText>
             <ThemedText type="body" style={styles.slogan}>Conectando bares con usuarios</ThemedText>
@@ -357,7 +357,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   );
 }
 
-// Componente optimizado para los textos de cabecera de la tarjeta
 function BaseFormTitle({ loginMode }: { loginMode: "sms" | "password" }) {
   return (
     <>
