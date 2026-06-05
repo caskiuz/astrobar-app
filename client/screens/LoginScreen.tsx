@@ -244,7 +244,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                   <View style={styles.inputBox}>
                     <Feather name="phone" size={20} color="#BBB" style={styles.inputBoxIcon} />
                     <TextInput
-                      placeholder="317 123 4567"
+                      placeholder="11 97 123 4567"
                       value={formatPhoneDisplay(phone)}
                       onChangeText={handlePhoneChange}
                       keyboardType="phone-pad"

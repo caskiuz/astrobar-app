@@ -415,7 +415,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                     style={styles.inputBoxIcon}
                   />
                   <TextInput
-                    placeholder="317 123 4567"
+                    placeholder="11 23 9388 52"
                     value={formatPhoneDisplay(phone)}
                     onChangeText={handlePhoneChange}
                     keyboardType="phone-pad"
@@ -611,7 +611,7 @@ export default function SignupScreen({ navigation, route }: SignupScreenProps) {
                       style={styles.inputBoxIcon}
                     />
                     <TextInput
-                      placeholder="Ej: 317 123 4567"
+                      placeholder="Ej: 11 23 9388 52"
                       value={formatPhoneDisplay(businessPhone)}
                       onChangeText={(text) => setBusinessPhone(text.replace(/\D/g, "").slice(0, 10))}
                       keyboardType="phone-pad"
