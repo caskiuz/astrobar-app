@@ -18,8 +18,8 @@ import { User, UserRole } from "@/types";
 import { ThemedText } from "@/components/ThemedText";
 import { AstroBarColors } from "@/constants/theme";
 
-// 🪐 IMPORTACIÓN ESTÁTICA EXCLUSIVA PARA ELIMINAR EL ERROR DE BUNDLE EN EAS
-import astrobarLogoImg from "@/assets/astrobarlogo.jpg";
+// 🪐 CORRECCIÓN DE RUTA RELATIVA:
+import astrobarLogoImg from "../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 

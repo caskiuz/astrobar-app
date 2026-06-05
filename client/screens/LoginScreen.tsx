@@ -18,7 +18,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image } from "expo-image"; // Cambiado al componente optimizado de expo-image
+import { Image } from "expo-image";
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -38,8 +38,8 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
 
-// 🪐 IMPORTACIÓN ESTÁTICA SEGURA PARA BLINDAR LA COMPILACIÓN EN EAS BUILD
-import astrobarLogoImg from "@/assets/astrobarlogo.jpg";
+// 🪐 CORRECCIÓN DE RUTA RELATIVA:
+import astrobarLogoImg from "../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
