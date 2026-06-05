@@ -57,12 +57,13 @@ export default {
         }
       ]
     ],
-    experiments: {
+   experiments: {
       reactCompiler: true
     },
     extra: {
       eas: {
-        projectId: "f17c46e5-f38a-4915-b035-c641e2c3aa0d"
+        /* 🪐 INYECTAMOS EL NUEVO ID DE TU CUENTA NUEVA */
+        projectId: "c2677a12-3825-42c7-a798-5d90bcc4af6b"
       },
       EXPO_PUBLIC_BACKEND_URL: "https://astrobar-app-production-4821.up.railway.app"
     }
