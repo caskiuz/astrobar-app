@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { apiRequest } from "@/lib/query-client";
 import { AstroBarColors, Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import * as ImagePicker from 'expo-image-picker';
-import * as Haptics from 'haptics';
+import * as Haptics from 'expo-haptics';
 import { Image } from "expo-image";
 
 interface Product {
@@ -210,7 +210,7 @@ export default function BusinessMenuScreen() {
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: item.isAvailable ? "rgba(57, 255, 20, 0.15)", borderWidth: 1, borderColor: "#39ff14" }]}
+          style={[styles.actionBtn, { backgroundColor: item.isAvailable ? "rgba(57, 255, 20, 0.15)" : "rgba(255, 76, 76, 0.12)", borderWidth: 1, borderColor: item.isAvailable ? "#39ff14" : "#ff4c4c" }]}
           onPress={() => toggleAvailability(item.id, item.isAvailable)}
         >
           <Feather name={item.isAvailable ? "check-circle" : "x-circle"} size={14} color={item.isAvailable ? "#39ff14" : "#ff4c4c"} />
