@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Pressable, TextInput, Alert, FlatList, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -23,12 +23,24 @@ interface Product {
   isAvailable: boolean;
 }
 
-export default function CreateFlashPromotionScreen({ route }: any) {
+// 🪐 TIPADO ESTRICTO DE RUTAS PARA EVITAR CRASHES NATIVOS
+type RootStackParamList = {
+  CreateFlashPromotion: { editPromotion?: any };
+};
+
+type CreateFlashPromotionRouteProp = RouteProp<RootStackParamList, "CreateFlashPromotion">;
+
+export default function CreateFlashPromotionScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const styles = getStyles(theme);
-  const { showToast } = useToast();
+  const styles = getStyles();
   const navigation = useNavigation<any>();
+  const route = useRoute<CreateFlashPromotionRouteProp>();
+  
+  // Seguro anti-crasheos si el ToastContext no está inicializado en este árbol de navegación
+  const toastContext = useToast();
+  const showToast = toastContext?.showToast || console.log;
+
   const editPromotion = route?.params?.editPromotion;
   const isEditing = !!editPromotion;
   
@@ -46,13 +58,12 @@ export default function CreateFlashPromotionScreen({ route }: any) {
     loadProducts();
     if (!isEditing) {
       checkLimits();
-    }
-    if (isEditing && editPromotion) {
-      setDiscountedPrice(editPromotion.promoPrice.toString());
-      setStock(editPromotion.stock.toString());
+    } else if (editPromotion) {
+      setDiscountedPrice(editPromotion.promoPrice?.toString() || "");
+      setStock(editPromotion.stock?.toString() || "");
       setCustomImage(editPromotion.image || "");
     }
-  }, []);
+  }, [editPromotion, isEditing]);
 
   useEffect(() => {
     if (showProductSelector) {
@@ -83,8 +94,15 @@ export default function CreateFlashPromotionScreen({ route }: any) {
     try {
       const response = await apiRequest("GET", "/api/business/products");
       const data = await response.json();
-      if (data.success) {
-        setProducts(data.products.filter((p: Product) => p.isAvailable));
+      if (data.success && data.products) {
+        const availableProducts = data.products.filter((p: Product) => p.isAvailable);
+        setProducts(availableProducts);
+        
+        // Si estamos editando, auto-seleccionamos el producto correspondiente
+        if (isEditing && editPromotion) {
+          const found = availableProducts.find((p: Product) => p.id === editPromotion.productId);
+          if (found) setSelectedProduct(found);
+        }
       }
     } catch (error) {
       console.error("Error loading products:", error);
@@ -129,6 +147,8 @@ export default function CreateFlashPromotionScreen({ route }: any) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         showToast(isEditing ? "Promoción actualizada" : "Promoción flash creada", "success");
         navigation.goBack();
+      } else {
+        Alert.alert("Error", data.error || "Ocurrió un problema en el servidor");
       }
     } catch (error: any) {
       console.error("Error:", error);
@@ -223,7 +243,7 @@ export default function CreateFlashPromotionScreen({ route }: any) {
             keyboardType="numeric"
           />
 
-          <ThemedText style={styles.inputLabelNative}>Unidades de Stock Límitado *</ThemedText>
+          <ThemedText style={styles.inputLabelNative}>Unidades de Stock Limitado *</ThemedText>
           <TextInput
             style={styles.inputNative}
             value={stock}
@@ -258,7 +278,6 @@ export default function CreateFlashPromotionScreen({ route }: any) {
           </View>
         </View>
 
-        {/* 🪐 BOTÓN ACCIÓN DE ENVÍO REDISEÑADO */}
         <Pressable
           onPress={handleCreate}
           disabled={loading || !selectedProduct}
@@ -281,7 +300,6 @@ export default function CreateFlashPromotionScreen({ route }: any) {
         </Pressable>
       </ScrollView>
 
-      {/* 🪐 PRODUCT SELECTOR MODAL REDISEÑADO EN OSCURO COMPLETO */}
       {showProductSelector && (
         <View style={styles.modalOverlayNative}>
           <View style={styles.modalContentNative}>

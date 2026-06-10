@@ -53,142 +53,113 @@ export default function PrivacyScreen() {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={theme.text} />
         </Pressable>
-        <ThemedText type="h3">Politica de Privacidad</ThemedText>
+        <ThemedText type="h3">Política de Privacidad</ThemedText>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.badge, { backgroundColor: AstroBarColors.success + '20' }]}>
           <Feather name="shield" size={16} color={AstroBarColors.success} />
           <ThemedText type="small" style={{ color: AstroBarColors.success, fontWeight: '600', marginLeft: Spacing.xs }}>
-            ultima actualizacion: Febrero 2025
+            Última actualización: Junio 2026
           </ThemedText>
         </View>
 
         <Section title="Nuestro Compromiso">
           <Paragraph>
-            En AstroBar nos comprometemos a proteger su privacidad y datos personales. Esta politica explica 
-            cmo recopilamos, usamos y protegemos su informacion.
+            En AstroBar nos comprometemos a proteger su privacidad y salvaguardar sus datos personales. Esta política explica de manera transparente cómo recopilamos, utilizamos, almacenamos y protegemos su información de acuerdo con las leyes vigentes.
           </Paragraph>
         </Section>
 
-        <Section title="Informacion que Recopilamos">
+        <Section title="Información que Recopilamos">
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Al Registrarse:
           </ThemedText>
-          <BulletPoint>Nombre completo</BulletPoint>
-          <BulletPoint>Numero de telefono (verificado por SMS)</BulletPoint>
-          <BulletPoint>Correo electronico</BulletPoint>
-          <BulletPoint>Contrasea (encriptada)</BulletPoint>
+          <BulletPoint>Nombre completo o Razón Social</BulletPoint>
+          <BulletPoint>Número de teléfono celular (verificado por SMS)</BulletPoint>
+          <BulletPoint>Dirección de correo electrónico</BulletPoint>
+          <BulletPoint>Contraseña de acceso (encriptada de forma irreversible)</BulletPoint>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Durante el Uso:
+            Durante el Uso de la Plataforma:
           </ThemedText>
-          <BulletPoint>Direcciones de entrega</BulletPoint>
-          <BulletPoint>Informacion de pago (procesada por Mercado Pago)</BulletPoint>
-          <BulletPoint>Historial de pedidos</BulletPoint>
-          <BulletPoint>Ubicacion GPS (solo repartidores durante entregas)</BulletPoint>
+          <BulletPoint>Ubicación geográfica por GPS (necesaria para localizar bares cercanos y gestionar el ruteo de promociones locales)</BulletPoint>
+          <BulletPoint>Información transaccional y de facturación (procesada de forma segura por Mercado Pago)</BulletPoint>
+          <BulletPoint>Historial de promociones escaneadas, validadas y canjes efectuados</BulletPoint>
+          <BulletPoint>Datos técnicos del dispositivo (token de notificaciones push, modelo y sistema operativo)</BulletPoint>
         </Section>
 
-        <Section title="CCmo Usamos su Informacion">
-          <BulletPoint>Procesar y entregar pedidos</BulletPoint>
-          <BulletPoint>Conectar usuarios, negocios y repartidores</BulletPoint>
-          <BulletPoint>Calcular tarifas de entrega</BulletPoint>
-          <BulletPoint>Procesar pagos y comisiones</BulletPoint>
-          <BulletPoint>Proporcionar seguimiento en tiempo real</BulletPoint>
-          <BulletPoint>Mejorar nuestros servicios</BulletPoint>
-          <BulletPoint>Prevenir fraudes</BulletPoint>
+        <Section title="Cómo Usamos su Información">
+          <BulletPoint>Vincular de forma eficiente a los usuarios con los comercios gastronómicos locales</BulletPoint>
+          <BulletPoint>Procesar los pagos de suscripciones y comisiones de manera encriptada</BulletPoint>
+          <BulletPoint>Proporcionar geolocalización en tiempo real para el mapa dinámico de beneficios</BulletPoint>
+          <BulletPoint>Enviar alertas inmediatas sobre promociones Flash activas en las cercanías</BulletPoint>
+          <BulletPoint>Garantizar la seguridad del ecosistema y prevenir conductas fraudulentas</BulletPoint>
+          <BulletPoint>Cumplir con las obligaciones fiscales y requerimientos legales del país</BulletPoint>
         </Section>
 
-        <Section title="Compartir Informacion">
-          <InfoBox icon="users" title="Con Otros Usuarios">
+        <Section title="Compartir Información">
+          <InfoBox icon="users" title="Con los Comercios Adheridos">
             <Paragraph>
-              Solo compartimos informacion necesaria para completar pedidos: nombre, direccion de entrega 
-              y telefono con negocio y repartidor asignado.
+              Al validar un código o promoción, compartimos únicamente los datos estrictamente necesarios para corroborar la transacción (como el nombre del cliente y el identificador dinámico de verificación QR).
             </Paragraph>
           </InfoBox>
 
-          <InfoBox icon="server" title="Con Proveedores">
+          <InfoBox icon="server" title="Con Proveedores de Servicios">
             <Paragraph>
-              Mercado Pago (pagos), Twilio (SMS), servicios de hosting. Todos cumplen con estandares de seguridad.
+              Delegamos el procesamiento de pagos en Mercado Pago y el envío de validaciones en infraestructura cloud certificada. Todos nuestros proveedores operan bajo estrictos estándares de confidencialidad informática.
             </Paragraph>
           </InfoBox>
         </Section>
 
         <Section title="Seguridad de Datos">
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Medidas Tecnicas:
+            Medidas Técnicas Implementadas:
           </ThemedText>
-          <BulletPoint>Encriptacion HTTPS/TLS</BulletPoint>
-          <BulletPoint>Contraseñas hasheadas con bcrypt</BulletPoint>
-          <BulletPoint>PCI-DSS compliance (Mercado Pago)</BulletPoint>
-          <BulletPoint>Backups automaticos diarios</BulletPoint>
+          <BulletPoint>Cifrado de canales de transferencia de datos mediante protocolos HTTPS/TLS</BulletPoint>
+          <BulletPoint>Resguardo de contraseñas mediante algoritmos de hash criptográfico seguros (bcrypt)</BulletPoint>
+          <BulletPoint>Cumplimiento normativo y tokenización provista por Mercado Pago</BulletPoint>
+          <BulletPoint>Copias de seguridad automáticas y auditorías periódicas de bases de datos</BulletPoint>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
             Su Responsabilidad:
           </ThemedText>
-          <BulletPoint>Use contraseña fuerte y unica</BulletPoint>
-          <BulletPoint>No comparta sus credenciales</BulletPoint>
-          <BulletPoint>Reporte actividad sospechosa</BulletPoint>
+          <BulletPoint>Mantener credenciales robustas y no reutilizadas en otros portales</BulletPoint>
+          <BulletPoint>No facilitar sus claves de acceso a terceros bajo ningún concepto</BulletPoint>
+          <BulletPoint>Notificar de inmediato al soporte técnico ante cualquier actividad inusual</BulletPoint>
         </Section>
 
-        <Section title="Sus Derechos (ARCO)">
+        <Section title="Sus Derechos Legales (Ley N° 25.326)">
           <Paragraph>
-            Conforme a la ley mexicana, usted tiene derecho a:
+            De conformidad con la Ley de Protección de Datos Personales de la República Argentina, usted es titular de los derechos de Acceso, Rectificación, Actualización y Supresión de sus datos almacenados de forma totalmente gratuita.
           </Paragraph>
-          <BulletPoint>Acceso: Conocer que datos tenemos</BulletPoint>
-          <BulletPoint>Rectificacion: Corregir datos inexactos</BulletPoint>
-          <BulletPoint>Cancelacion: Solicitar eliminacion</BulletPoint>
-          <BulletPoint>Oposicion: Oponerse a ciertos usos</BulletPoint>
+          <BulletPoint>Acceso: Solicitar informe detallado de sus datos registrados</BulletPoint>
+          <BulletPoint>Rectificación/Actualización: Corregir datos erróneos o desactualizados</BulletPoint>
+          <BulletPoint>Supresión: Solicitar la baja definitiva y eliminación de sus registros del sistema</BulletPoint>
 
           <View style={[styles.contactBox, { backgroundColor: theme.card }]}>
             <Feather name="mail" size={20} color={AstroBarColors.primary} />
             <View style={{ marginLeft: Spacing.md, flex: 1 }}>
               <ThemedText type="body" style={{ fontWeight: '600' }}>
-                Ejercer sus derechos:
+                Canal de Derechos de Privacidad:
               </ThemedText>
               <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
-                privacy@AstroBar.app
+                privacy@astrobar.app
               </ThemedText>
               <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
-                Respuesta en 20 dias habiles
+                Los plazos de resolución se rigen según los tiempos fijados por la AAIP.
               </ThemedText>
             </View>
           </View>
         </Section>
 
-        <Section title="Retencion de Datos">
-          <BulletPoint>Cuenta activa: Mientras este activa</BulletPoint>
-          <BulletPoint>Historial de pedidos: 7 años (requisito fiscal)</BulletPoint>
-          <BulletPoint>Ubicacion GPS: 30 dias despues de entrega</BulletPoint>
-          <BulletPoint>Comunicaciones: 2 años</BulletPoint>
+        <Section title="Retención de la Información">
+          <BulletPoint>Perfil del usuario: Almacenado mientras la cuenta permanezca dada de alta</BulletPoint>
+          <BulletPoint>Historial fiscal y contable: Conservado por los plazos de exigencia tributaria nacional</BulletPoint>
+          <BulletPoint>Registros de localización GPS: Eliminados inmediatamente tras el cumplimiento del ruteo activo</BulletPoint>
         </Section>
 
-        <Section title="Privacidad por Rol">
-          <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Usuarios/Clientes:
-          </ThemedText>
-          <Paragraph>
-            Protegemos informacion de pago, direcciones e historial. Solo compartimos nombre y direccion 
-            durante pedido activo.
-          </Paragraph>
-
-          <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Repartidores:
-          </ThemedText>
-          <Paragraph>
-            Ubicacion GPS solo visible durante entregas activas. Informacion de vehiculo y ganancias privadas.
-          </Paragraph>
-
-          <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Negocios:
-          </ThemedText>
-          <Paragraph>
-            Informacion bancaria encriptada. Metricas de ventas privadas.
-          </Paragraph>
-        </Section>
-
-        <Section title="Contacto">
+        <Section title="Contacto y Soporte">
           <View style={[styles.contactGrid, { backgroundColor: theme.card }]}>
             <View style={styles.contactItem}>
               <Feather name="shield" size={24} color={AstroBarColors.primary} />
@@ -196,7 +167,7 @@ export default function PrivacyScreen() {
                 Privacidad
               </ThemedText>
               <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-                privacy@AstroBar.app
+                privacy@astrobar.app
               </ThemedText>
             </View>
             <View style={styles.contactItem}>
@@ -205,7 +176,7 @@ export default function PrivacyScreen() {
                 Seguridad
               </ThemedText>
               <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-                security@AstroBar.app
+                security@astrobar.app
               </ThemedText>
             </View>
             <View style={styles.contactItem}>
@@ -214,18 +185,18 @@ export default function PrivacyScreen() {
                 Soporte
               </ThemedText>
               <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-                support@AstroBar.app
+                support@astrobar.app
               </ThemedText>
             </View>
           </View>
         </Section>
 
         <View style={[styles.footer, { backgroundColor: theme.card }]}>
-          <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: 'center' }}>
-            Del n�huatl "vivir" - Conectando negocios locales con la comunidad
+          <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }}>
+            AstroBar App - Conectando el sector gastronómico local con la comunidad urbana
           </ThemedText>
           <ThemedText type="caption" style={{ color: theme.textSecondary, textAlign: 'center', marginTop: Spacing.xs }}>
-             @ 2025 AstroBar. Todos los derechos reservados.
+             © 2026 AstroBar. Todos los derechos reservados de acuerdo al marco normativo vigente.
           </ThemedText>
         </View>
       </ScrollView>

@@ -41,21 +41,21 @@ export default function TermsScreen() {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={theme.text} />
         </Pressable>
-        <ThemedText type="h3">TÈrminos y Condiciones</ThemedText>
+        <ThemedText type="h3">T√©rminos y Condiciones</ThemedText>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.badge, { backgroundColor: AstroBarColors.primary + '20' }]}>
           <ThemedText type="small" style={{ color: AstroBarColors.primary, fontWeight: '600' }}>
-            ⁄ltima actualizaciÛn: Febrero 2025
+            √öltima actualizaci√≥n: Junio 2026
           </ThemedText>
         </View>
 
-        <Section title="1. AceptaciÛn de los TÈrminos">
+        <Section title="1. Aceptaci√≥n de los T√©rminos">
           <Paragraph>
-            Al acceder y utilizar AstroBar, usted acepta estar legalmente vinculado por estos TÈrminos y Condiciones. 
-            AstroBar es una plataforma tecnolÛgica que conecta usuarios con bares nocturnos mediante promociones flash y comunes en Buenos Aires, Argentina.
+            Al acceder y utilizar AstroBar, usted acepta estar legalmente vinculado por estos T√©rminos y Condiciones. 
+            AstroBar es una plataforma tecnol√≥gica que conecta usuarios con bares nocturnos mediante promociones flash y comunes en Buenos Aires, Argentina.
           </Paragraph>
         </Section>
 
@@ -64,99 +64,93 @@ export default function TermsScreen() {
             Para Usuarios/Clientes:
           </ThemedText>
           <BulletPoint>Explorar bares nocturnos en Buenos Aires</BulletPoint>
-          <BulletPoint>Acceder a promociones flash (5-15 minutos)</BulletPoint>
+          <BulletPoint>Acceder a promociones flash (5-15 minutos de disponibilidad)</BulletPoint>
           <BulletPoint>Aceptar promociones comunes programadas</BulletPoint>
-          <BulletPoint>Sistema de puntos y niveles (Copper ? Platinum)</BulletPoint>
-          <BulletPoint>CÛdigos QR ˙nicos para canjear en el bar</BulletPoint>
+          <BulletPoint>Sistema de puntos y niveles (Copper a Platinum)</BulletPoint>
+          <BulletPoint>C√≥digos QR √∫nicos para canjear en la barra del bar</BulletPoint>
 
           <ThemedText type="body" style={[styles.subsectionTitle, { color: theme.text }]}>
-            Para Bares:
+            Para Bares y Comercios:
           </ThemedText>
-          <BulletPoint>Panel de gestiÛn de promociones</BulletPoint>
-          <BulletPoint>Control de men˙ y productos</BulletPoint>
-          <BulletPoint>EstadÌsticas de ventas y canjes</BulletPoint>
-          <BulletPoint>ComisiÛn progresiva: Mes 1 gratis, Mes 2: 5%, Mes 3: 10%, Mes 4+: 15%</BulletPoint>
-          <BulletPoint>El bar recibe 100% del precio del producto</BulletPoint>
+          <BulletPoint>Panel de gesti√≥n de promociones en tiempo real</BulletPoint>
+          <BulletPoint>Control de men√∫, stock e insumos disponibles</BulletPoint>
+          <BulletPoint>Estad√≠sticas anal√≠ticas de ventas y canjes efectuados</BulletPoint>
+          <BulletPoint>Comisi√≥n progresiva: Mes 1 bonificado (gratis), Mes 2: 5%, Mes 3: 10%, Mes 4 en adelante: 15%</BulletPoint>
+          <BulletPoint>El bar recibe el 100% del precio fijado por el producto</BulletPoint>
         </Section>
 
         <Section title="3. Sistema de Pagos y Comisiones">
           <Paragraph>
-            Por cada promociÛn aceptada, la distribuciÛn es:
+            Por cada promoci√≥n aceptada dentro de la plataforma, la distribuci√≥n se efect√∫a de la siguiente manera:
           </Paragraph>
-          <BulletPoint>Bar: 100% del precio del producto promocional</BulletPoint>
-          <BulletPoint>AstroBar: ComisiÛn progresiva adicional que paga el usuario</BulletPoint>
-          <BulletPoint>Primer mes: 0% (gratis para nuevos bares)</BulletPoint>
-          <BulletPoint>Segundo mes: 5% adicional</BulletPoint>
-          <BulletPoint>Tercer mes: 10% adicional</BulletPoint>
-          <BulletPoint>Cuarto mes en adelante: 15% adicional</BulletPoint>
+          <BulletPoint>Bar: Percibe el 100% del precio estipulado para el producto promocional</BulletPoint>
+          <BulletPoint>AstroBar: Comisi√≥n progresiva adicional que abona el usuario por el uso del servicio</BulletPoint>
+          <BulletPoint>Primer mes: 0% (periodo de prueba bonificado para nuevos bares)</BulletPoint>
+          <BulletPoint>Segundo mes: 5% adicional sobre el valor del consumo</BulletPoint>
+          <BulletPoint>Tercer mes: 10% adicional sobre el valor del consumo</BulletPoint>
+          <BulletPoint>Cuarto mes en adelante: 15% de recargo por servicio digital</BulletPoint>
           <Paragraph>
-            Los pagos se procesan de forma segura mediante Mercado Pago. El usuario tiene 60 segundos para cancelar despuÈs de aceptar.
+            Los pagos se procesan de forma encriptada mediante la pasarela segura de Mercado Pago. Tras aceptar la oferta, el usuario dispone de una ventana de 60 segundos para efectuar la cancelaci√≥n si lo requiere.
           </Paragraph>
         </Section>
 
-        <Section title="4. Cancelaciones y PolÌtica de Uso">
-          <BulletPoint>CancelaciÛn dentro de 60 segundos: Reembolso 100%</BulletPoint>
-          <BulletPoint>DespuÈs de 60 segundos: Sin reembolso</BulletPoint>
-          <BulletPoint>QR codes son ˙nicos y de un solo uso</BulletPoint>
-          <BulletPoint>Las promociones flash tienen duraciÛn limitada (5-15 minutos)</BulletPoint>
-          <BulletPoint>Stock limitado por promociÛn</BulletPoint>
+        <Section title="4. Cancelaciones y Pol√≠tica de Uso">
+          <BulletPoint>Cancelaci√≥n efectuada dentro de los 60 segundos: Reembolso completo del 100%</BulletPoint>
+          <BulletPoint>Pasados los 60 segundos iniciales: No aplica reembolso de ning√∫n tipo</BulletPoint>
+          <BulletPoint>Los c√≥digos QR de canje son intransferibles y de un √∫nico uso por transacci√≥n</BulletPoint>
+          <BulletPoint>Las promociones flash tienen una duraci√≥n estrictamente limitada (de 5 a 15 minutos en radar)</BulletPoint>
+          <BulletPoint>Cada oferta lanzada al mapa cuenta con un cupo de stock limitado predefinido por el comercio</BulletPoint>
         </Section>
 
         <Section title="5. Sistema de Puntos y Niveles">
           <Paragraph>
-            Los usuarios ganan 10 puntos por cada promociÛn canjeada exitosamente. Los niveles son:
+            Los usuarios adquieren 10 puntos de experiencia por cada promoci√≥n QR validada exitosamente en caja. Los rangos de niveles del perfil se distribuyen en:
           </Paragraph>
-          <BulletPoint>Copper: 0-99 puntos</BulletPoint>
-          <BulletPoint>Bronze: 100-249 puntos</BulletPoint>
-          <BulletPoint>Silver: 250-499 puntos</BulletPoint>
-          <BulletPoint>Gold: 500-999 puntos</BulletPoint>
-          <BulletPoint>Platinum: 1000+ puntos</BulletPoint>
+          <BulletPoint>Copper: de 0 a 99 puntos acumulados</BulletPoint>
+          <BulletPoint>Bronze: de 100 a 249 puntos acumulados</BulletPoint>
+          <BulletPoint>Silver: de 250 a 499 puntos acumulados</BulletPoint>
+          <BulletPoint>Gold: de 500 a 999 puntos acumulados</BulletPoint>
+          <BulletPoint>Platinum: 1000 o m√°s puntos acumulados en la cuenta</BulletPoint>
         </Section>
 
         <Section title="6. Privacidad y Datos">
           <Paragraph>
-            Recopilamos informaciÛn necesaria para operar el servicio: nombre, telÈfono, ubicaciÛn (durante uso), 
-            historial de pedidos. Ver PolÌtica de Privacidad completa para m·s detalles.
+            Recopilamos la informaci√≥n estrictamente necesaria para la correcta prestaci√≥n del servicio: nombre, tel√©fono de contacto, localizaci√≥n por GPS en tiempo real (√∫nicamente durante el uso activo de la app) e historial de canjes. Consulte nuestra Pol√≠tica de Privacidad integrada para m√°s detalles.
           </Paragraph>
         </Section>
 
-        <Section title="7. LimitaciÛn de Responsabilidad">
+        <Section title="7. Limitaci√≥n de Responsabilidad">
           <Paragraph>
-            AstroBar es una plataforma tecnolÛgica intermediaria entre usuarios y bares. No somos responsables de la calidad de productos, 
-            servicios o acciones de los bares participantes. El servicio se proporciona "tal cual" sin garantÌas de 
-            disponibilidad ininterrumpida. Los usuarios deben ser mayores de 18 aÒos.
+            AstroBar opera exclusivamente como una plataforma tecnol√≥gica de intermediaci√≥n entre los usuarios finales y los establecimientos comerciales adheridos. No asumimos responsabilidad alguna sobre la calidad, el estado, la higiene de los productos o las acciones particulares del personal de los bares participantes. El servicio se brinda "tal cual est√°" sin garant√≠as de disponibilidad t√©cnica ininterrumpida. Todo usuario debe contar con la mayor√≠a de edad legal (18 a√±os o m√°s).
           </Paragraph>
         </Section>
 
         <Section title="8. Conducta Prohibida">
           <Paragraph>
-            Est· prohibido: usar la plataforma para actividades ilegales, crear m˙ltiples cuentas para abusar de promociones, 
-            revender cÛdigos QR, acosar a otros usuarios o personal de bares. Consecuencia: suspensiÛn permanente.
-            Solo usuarios mayores de 18 aÒos pueden usar la plataforma.
+            Queda estrictamente prohibido utilizar la plataforma para fines il√≠citos, falsificar identidades, generar m√∫ltiples cuentas espejo con el fin de eludir los l√≠mites de stock de las promociones, revender de forma externa los c√≥digos QR asignados o ejercer cualquier tipo de hostigamiento hacia los comercios. La detecci√≥n de estas faltas conllevar√° la suspensi√≥n permanente de la cuenta sin derecho a reclamos.
           </Paragraph>
         </Section>
 
         <Section title="9. Modificaciones">
           <Paragraph>
-            AstroBar puede modificar estos tÈrminos en cualquier momento. Los cambios ser·n notificados 
-            mediante la app y email. El uso continuado constituye aceptaciÛn.
+            AstroBar se reserva el derecho de modificar o actualizar estos t√©rminos en cualquier momento. Los cambios sustanciales ser√°n notificados a la comunidad mediante la aplicaci√≥n o por correo electr√≥nico. El uso continuado del sistema implica la aceptaci√≥n lisa y llana de las nuevas condiciones.
           </Paragraph>
         </Section>
 
         <Section title="10. Contacto">
           <Paragraph>
-            Email: support@astrobar.app{'\n'}
-            UbicaciÛn: Buenos Aires, Argentina{'\n'}
-            Soporte disponible en la app
+            E-mail institucional: support@astrobar.app{'\n'}
+            Ubicaci√≥n de cabecera: Buenos Aires, Argentina{'\n'}
+            Mesa de soporte t√©cnico disponible de forma integrada en la app.
           </Paragraph>
         </Section>
 
         <View style={[styles.footer, { backgroundColor: theme.card }]}>
-          <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: 'center' }}>
-            ?? AstroBar - Conectando bares con usuarios en Buenos Aires
+          <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }}>
+            AstroBar - Conectando el circuito gastron√≥mico y nocturno en Buenos Aires
           </ThemedText>
           <ThemedText type="caption" style={{ color: theme.textSecondary, textAlign: 'center', marginTop: Spacing.xs }}>
-            © 2025 AstroBar. Todos los derechos reservados.
+             ¬© 2026 AstroBar. Todos los derechos reservados.
           </ThemedText>
         </View>
       </ScrollView>
