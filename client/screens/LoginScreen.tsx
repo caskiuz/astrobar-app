@@ -10,6 +10,7 @@ import {
   Dimensions,
   FlatList,
   TextInput,
+  Alert,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -37,7 +38,6 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useToast } from "@/contexts/ToastContext";
 import { apiRequest } from "@/lib/query-client";
 
-// 🪐 RUTA RELATIVA REAL COHERENTE CON DOS NIVELES DE SUBIDA
 import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -57,7 +57,6 @@ type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Login">;
 };
 
-// Componente para renderizar y animar cada estrella en el espacio exterior
 function StarParticle({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
   const opacity = useSharedValue(0.15);
 
@@ -187,13 +186,26 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       const result = await loginWithPassword(identifier, password);
+      
       if (result?.requiresVerification) {
         showToast("Verifica tu teléfono para continuar", "info");
         navigation.navigate("VerifyPhone", { phone: identifier });
+        return;
+      }
+
+      // 🪐 REDIRECCIÓN EXPLÍCITA DE ROLES PARA EVITAR CRASHES POR RUTAS FANTASMAS
+      if (result?.user) {
+        if (result.user.role === 'business_owner') {
+          navigation.navigate('BusinessPromotions');
+        } else if (result.user.role === 'admin' || result.user.role === 'super_admin') {
+          navigation.navigate('AdminDashboard');
+        } else {
+          navigation.navigate('MainTabs');
+        }
       }
     } catch (error: any) {
       showToast(error.message || "Error al iniciar sesión", "error");
-    } finally {
+    } finaly {
       setIsLoading(false);
     }
   };
@@ -316,7 +328,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               </View>
             )}
 
-            {/* 🪐 REESTRUCTURACIÓN NATIVA CON PRESSABLE CIAN NEÓN PREMIUM */}
             <Pressable
               onPress={loginMode === "password" ? handlePasswordLogin : handlePhoneLogin}
               disabled={isLoading}
@@ -430,8 +441,6 @@ const styles = StyleSheet.create({
   inputBoxIcon: { marginRight: Spacing.xs },
   textInput: { flex: 1, fontSize: 15, color: "#FFF", fontWeight: '500' },
   inputBoxError: { borderColor: AstroBarColors.error },
-  
-  // 🔮 ESTILOS DEL BOTÓN NATIVO DE ALTA CALIDAD VISUAL
   loginButtonNative: { 
     marginTop: Spacing.xs, 
     height: 50, 
