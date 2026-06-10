@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Ale
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiRequest } from '../lib/query-client';
 import { useAuth } from '../contexts/AuthContext';
 
 import { useTheme } from '@/hooks/useTheme';
+import { Spacing, BorderRadius, AstroBarColors, Shadows } from "@/constants/theme";
 
 interface Promotion {
   id: string;
@@ -24,7 +26,8 @@ interface Promotion {
 
 export default function BusinessPromotionsPanel() {
   const { theme } = useTheme();
-  const styles = getStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = getStyles(theme, insets);
   const { user } = useAuth();
   const navigation = useNavigation<any>();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -68,9 +71,7 @@ export default function BusinessPromotionsPanel() {
   };
 
   const togglePromotion = async (id: string, currentStatus: boolean) => {
-    
     try {
-      
       const response = await apiRequest('PATCH', `/api/promotions/${id}`, { isActive: !currentStatus });
       const result = await response.json();
       
@@ -81,39 +82,31 @@ export default function BusinessPromotionsPanel() {
         Alert.alert('Error', result.error || 'Error al actualizar');
       }
     } catch (error: any) {
-      
       Alert.alert('Error', 'Error al actualizar promoción');
     }
   };
 
   const deletePromotion = async (id: string, title: string) => {
-    // Para web, usar confirm nativo
     if (typeof window !== 'undefined' && window.confirm) {
       const confirmed = window.confirm(`¿Estás seguro de eliminar "${title}"?`);
       if (!confirmed) return;
       
       try {
-        console.log('🗑️ Eliminando promoción:', id);
         const response = await apiRequest('DELETE', `/api/promotions/${id}`);
-        console.log('📡 Response status:', response.status);
         const result = await response.json();
-        console.log('📦 Response data:', result);
         
         if (result.success) {
           loadPromotions();
           window.alert('Promoción eliminada exitosamente');
         } else {
-          console.error('❌ Error en respuesta:', result.error);
           window.alert('Error: ' + (result.error || 'Error al eliminar'));
         }
       } catch (error: any) {
-        console.error('❌ Error al eliminar promoción:', error);
         window.alert('Error: ' + (error.message || 'Error al eliminar promoción'));
       }
       return;
     }
     
-    // Para móvil, usar Alert.alert
     Alert.alert(
       'Eliminar promoción',
       `¿Estás seguro de eliminar "${title}"?`,
@@ -124,21 +117,16 @@ export default function BusinessPromotionsPanel() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('🗑️ Eliminando promoción:', id);
               const response = await apiRequest('DELETE', `/api/promotions/${id}`);
-              console.log('📡 Response status:', response.status);
               const result = await response.json();
-              console.log('📦 Response data:', result);
               
               if (result.success) {
                 loadPromotions();
-                Alert.alert('Éxito', 'Promoción eliminada');
+                Alert.alert('Éxito', 'Promoción deleted');
               } else {
-                console.error('❌ Error en respuesta:', result.error);
                 Alert.alert('Error', result.error || 'Error al eliminar');
               }
             } catch (error: any) {
-              console.error('❌ Error al eliminar promoción:', error);
               Alert.alert('Error', error.message || 'Error al eliminar promoción');
             }
           }
@@ -148,7 +136,7 @@ export default function BusinessPromotionsPanel() {
   };
 
   const renderPromotion = ({ item }: { item: Promotion }) => {
-    const stockPercentage = (item.stockRemaining / item.stock) * 100;
+    const stockPercentage = item.stock > 0 ? (item.stockRemaining / item.stock) * 100 : 0;
     const isLowStock = stockPercentage < 20;
     const timeRemaining = getTimeRemaining(item.endTime);
     const isExpired = timeRemaining === 'Expirada';
@@ -164,26 +152,26 @@ export default function BusinessPromotionsPanel() {
         )}
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
             {item.type === 'flash' && (
               <View style={styles.flashBadge}>
-                <Ionicons name="flash" size={12} color="#FFF" />
+                <Ionicons name="flash" size={10} color="#05080f" />
                 <Text style={styles.flashText}>FLASH</Text>
               </View>
             )}
             {!item.isActive && (
-              <View style={[styles.flashBadge, { backgroundColor: '#666' }]}>
-                <Text style={styles.flashText}>PAUSADA</Text>
+              <View style={[styles.flashBadge, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                <Text style={[styles.flashText, { color: '#cbd5e1' }]}>PAUSADA</Text>
               </View>
             )}
           </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             {!isExpired && (
               <TouchableOpacity
                 onPress={() => navigation.navigate(item.type === 'flash' ? 'CreateFlashPromotion' : 'CreateCommonPromotion', { editPromotion: item })}
-                style={[styles.statusBtn, { backgroundColor: '#2196F3' }]}
+                style={[styles.statusBtn, { backgroundColor: 'rgba(0, 242, 254, 0.15)', borderWidth: 1, borderColor: '#00f2fe' }]}
               >
-                <Ionicons name="pencil" size={16} color="#FFF" />
+                <Ionicons name="pencil" size={14} color="#00f2fe" />
               </TouchableOpacity>
             )}
             {!isExpired && (
@@ -193,16 +181,16 @@ export default function BusinessPromotionsPanel() {
               >
                 <Ionicons
                   name={item.isActive ? 'pause' : 'play'}
-                  size={16}
-                  color="#FFF"
+                  size={14}
+                  color={item.isActive ? '#39ff14' : '#94a3b8'}
                 />
               </TouchableOpacity>
             )}
             <TouchableOpacity
               onPress={() => deletePromotion(item.id, item.title)}
-              style={[styles.statusBtn, { backgroundColor: '#EF4444' }]}
+              style={[styles.statusBtn, { backgroundColor: 'rgba(255, 76, 76, 0.15)', borderWidth: 1, borderColor: '#ff4c4c' }]}
             >
-              <Ionicons name="trash" size={16} color="#FFF" />
+              <Ionicons name="trash" size={14} color="#ff4c4c" />
             </TouchableOpacity>
           </View>
         </View>
@@ -226,7 +214,7 @@ export default function BusinessPromotionsPanel() {
           </View>
           <View style={styles.stat}>
             <Text style={styles.statLabel}>Precio</Text>
-            <Text style={styles.statValue}>${item.promoPrice.toFixed(2)}</Text>
+            <Text style={[styles.statValue, { color: '#39ff14' }]}>${item.promoPrice.toFixed(2)}</Text>
           </View>
         </View>
 
@@ -250,46 +238,40 @@ export default function BusinessPromotionsPanel() {
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
-        <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>Cargando promociones...</Text>
+      <View style={[styles.center, { backgroundColor: '#05080f' }]}>
+        <Text style={styles.loadingText}>Cargando promociones...</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Header con navegación */}
-      <View style={[styles.topNav, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
-        <TouchableOpacity
-          style={[styles.navButton, styles.navButtonActive]}
-          onPress={() => {}}
-        >
-          <Ionicons name="megaphone" size={20} color="#FFD700" />
-          <Text style={styles.navButtonText}>Promociones</Text>
+    <View style={styles.container}>
+      {/* 🪐 CONTROL SUPERIOR ULTRA MODERNO */}
+      <View style={styles.topNav}>
+        <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
+          <Ionicons name="megaphone" size={18} color="#00f2fe" />
+          <Text style={[styles.navButtonText, { color: '#00f2fe' }]}>Promociones</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('BusinessMenu')}
-        >
-          <Ionicons name="restaurant" size={20} color={theme.colors.text.secondary} />
-          <Text style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Menú</Text>
+        
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('BusinessMenu')}>
+          <Ionicons name="restaurant" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Menú</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('PromotionTransactions')}
-        >
-          <Ionicons name="list" size={20} color={theme.colors.text.secondary} />
-          <Text style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Historial</Text>
+        
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('PromotionTransactions')}>
+          <Ionicons name="list" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Historial</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.summary, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+      {/* 📊 PANEL DE RESUMEN METÓDICO */}
+      <View style={styles.summary}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{promotions.filter(p => p.isActive).length || 0}</Text>
           <Text style={styles.summaryLabel}>Activas</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>
+          <Text style={[styles.summaryValue, { color: '#a855f7' }]}>
             {promotions.filter(p => p.type === 'flash' && p.isActive).length || 0}
           </Text>
           <Text style={styles.summaryLabel}>Flash</Text>
@@ -307,28 +289,31 @@ export default function BusinessPromotionsPanel() {
         renderItem={renderPromotion}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => {
             setRefreshing(true);
             loadPromotions();
-          }} />
+          }} tintColor="#00f2fe" />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="megaphone-outline" size={64} color="#666" />
-            <Text style={styles.emptyText}>No hay promociones activas</Text>
-            <Text style={styles.emptySubtext}>Crea tu primera promoción usando los botones de abajo</Text>
+            <View style={styles.emptyIconCore}>
+              <Ionicons name="megaphone-outline" size={32} color="#64748b" />
+            </View>
+            <Text style={styles.emptyText}>No hay promociones creadas</Text>
+            <Text style={styles.emptySubtext}>Lanzá una oferta Flash o Común para empezar a llenar las mesas.</Text>
           </View>
         }
       />
 
-      {/* Floating Action Buttons */}
+      {/* 🪐 CÁPSULAS FLOTANTES CYBERPUNK (Rediseño de los círculos planos) */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, styles.flashFab]}
           onPress={() => navigation.navigate('CreateFlashPromotion')}
         >
-          <Ionicons name="flash" size={24} color="#FFF" />
+          <Ionicons name="flash" size={20} color="#FFF" />
           <Text style={styles.fabText}>Flash</Text>
         </TouchableOpacity>
         
@@ -336,140 +321,155 @@ export default function BusinessPromotionsPanel() {
           style={[styles.fab, styles.commonFab]}
           onPress={() => navigation.navigate('CreateCommonPromotion')}
         >
-          <Ionicons name="calendar" size={24} color="#FFF" />
-          <Text style={styles.fabText}>Común</Text>
+          <Ionicons name="calendar" size={20} color="#05080f" />
+          <Text style={[styles.fabText, { color: '#05080f' }]}>Común</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-const getStyles = (theme: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0E27' },
+const getStyles = (theme: any, insets: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#05080f' },
   topNav: {
     flexDirection: 'row',
-    backgroundColor: '#1A1F3A',
-    paddingTop: 40,
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(11, 17, 30, 0.4)',
+    paddingTop: insets.top + Spacing.xs,
+    paddingHorizontal: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   navButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     gap: 6,
   },
   navButtonActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#FFD700',
+    borderBottomColor: '#00f2fe',
   },
   navButtonText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FFD700',
+    fontSize: 13,
+    fontWeight: '800',
+    includeFontPadding: false,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { color: '#FFF', fontSize: 16 },
+  loadingText: { color: '#00f2fe', fontSize: 15, fontWeight: '700' },
+  
   summary: {
     flexDirection: 'row',
-    padding: 20,
-    backgroundColor: '#1A1F3A',
+    paddingVertical: Spacing.md,
+    backgroundColor: 'rgba(15, 23, 42, 0.3)',
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryValue: { fontSize: 24, fontWeight: 'bold', color: '#FFD700' },
-  summaryLabel: { fontSize: 12, color: '#999', marginTop: 4 },
-  list: { padding: 16 },
+  summaryItem: { flex: 1, alignItems: 'center', borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  summaryValue: { fontSize: 22, fontWeight: '900', color: '#FFF' },
+  summaryLabel: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontWeight: '600', textTransform: 'uppercase' },
+  
+  list: { padding: Spacing.lg, paddingBottom: 100 },
   card: {
-    backgroundColor: '#1A1F3A',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#2A2F4A',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden'
   },
   promoImage: {
     width: '100%',
     height: 120,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
-  flashCard: { borderColor: '#FFD700', borderWidth: 2 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
+  flashCard: { borderColor: 'rgba(168, 85, 247, 0.4)' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
+  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginRight: Spacing.sm },
+  title: { fontSize: 17, fontWeight: '900', color: '#FFF', flex: 1 },
   flashBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: '#a855f7',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    gap: 3,
   },
-  flashText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
+  flashText: { fontSize: 9, fontWeight: '900', color: '#FFF' },
   statusBtn: {
-    backgroundColor: '#4CAF50',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    width: 34,
+    height: 34,
+    borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  inactiveBtn: { backgroundColor: '#666' },
-  stats: { flexDirection: 'row', marginBottom: 12 },
+  inactiveBtn: { backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)' },
+  
+  stats: { flexDirection: 'row', marginBottom: Spacing.md, backgroundColor: 'rgba(5, 8, 15, 0.3)', padding: Spacing.sm, borderRadius: BorderRadius.md },
   stat: { flex: 1, alignItems: 'center' },
-  statLabel: { fontSize: 12, color: '#999', marginBottom: 4 },
-  statValue: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
-  lowStock: { color: '#FF5252' },
+  statLabel: { fontSize: 11, color: '#94a3b8', marginBottom: 2, fontWeight: '500' },
+  statValue: { fontSize: 15, fontWeight: '800', color: '#FFF' },
+  lowStock: { color: '#ff4c4c' },
+  
   progressBar: {
-    height: 6,
-    backgroundColor: '#2A2F4A',
-    borderRadius: 3,
+    height: 5,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: BorderRadius.full,
     overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: '#4CAF50', borderRadius: 3 },
-  lowStockBar: { backgroundColor: '#FF5252' },
-  alertText: { fontSize: 10, color: '#FF5252', fontWeight: 'bold', marginTop: 2 },
-  inactiveCard: { opacity: 0.6 },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#2A2F4A' },
-  footerText: { fontSize: 11, color: '#999' },
-  empty: { alignItems: 'center', marginTop: 60 },
-  emptyText: { color: '#666', fontSize: 16, marginTop: 16 },
-  emptySubtext: { color: '#666', fontSize: 14, marginTop: 8, textAlign: 'center' },
+  progressFill: { height: '100%', backgroundColor: '#39ff14', borderRadius: BorderRadius.full },
+  lowStockBar: { backgroundColor: '#ff4c4c' },
+  alertText: { fontSize: 9, color: '#ff4c4c', fontWeight: '900', marginTop: 2, textTransform: 'uppercase' },
+  inactiveCard: { opacity: 0.5 },
+  
+  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.sm, paddingTop: Spacing.sm, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  footerText: { fontSize: 11, color: '#64748b', fontWeight: '500' },
+  
+  empty: { alignItems: 'center', marginTop: 80, paddingHorizontal: Spacing.xl },
+  emptyIconCore: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.md },
+  emptyText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  emptySubtext: { color: '#94a3b8', fontSize: 13, marginTop: Spacing.xs, textAlign: 'center', fontWeight: '500', lineHeight: 18 },
+  
   fabContainer: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
+    bottom: 24,
+    right: Spacing.lg,
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing.md,
   },
   fab: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    height: 46,
+    borderRadius: BorderRadius.full,
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    justifyContent: 'center',
+    gap: 6,
+    ...Shadows.md,
   },
   flashFab: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#a855f7',
+    shadowColor: '#a855f7',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   commonFab: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#00f2fe',
+    shadowColor: '#00f2fe',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   fabText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 13,
+    fontWeight: '900',
     color: '#FFF',
-    marginTop: 4,
+    letterSpacing: 0.3,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Pressable, TextInput, Alert, FlatList } from "react-native";
+import { View, StyleSheet, ScrollView, Pressable, TextInput, Alert, FlatList, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -140,7 +140,7 @@ export default function CreateFlashPromotionScreen({ route }: any) {
 
   const renderProduct = ({ item }: { item: Product }) => (
     <Pressable
-      style={[styles.productCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+      style={styles.productCardNative}
       onPress={() => {
         setSelectedProduct(item);
         setDiscountedPrice("");
@@ -150,157 +150,161 @@ export default function CreateFlashPromotionScreen({ route }: any) {
     >
       <Image
         source={{ uri: item.image || "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=400&fit=crop" }}
-        style={styles.productImage}
+        style={styles.productImageNative}
         contentFit="cover"
       />
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <ThemedText type="small" style={{ fontWeight: "600" }}>{item.name}</ThemedText>
-        <ThemedText type="caption" style={{ color: theme.textSecondary }}>{item.category}</ThemedText>
-        <ThemedText type="small" style={{ color: "#8B5CF6", fontWeight: "700" }}>${item.price.toLocaleString('es-AR')}</ThemedText>
+        <ThemedText style={{ fontWeight: "800", fontSize: 15, color: '#FFF' }}>{item.name}</ThemedText>
+        <ThemedText style={{ color: '#94a3b8', fontSize: 12, marginTop: 2, fontWeight: '500' }}>{item.category}</ThemedText>
+        <ThemedText style={{ color: "#a855f7", fontWeight: "900", fontSize: 14, marginTop: 4 }}>${item.price.toLocaleString('es-AR')}</ThemedText>
       </View>
     </Pressable>
   );
 
   if (loadingProducts) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: "center", alignItems: "center" }]}>
-        <ThemedText>Cargando productos...</ThemedText>
+      <View style={[styles.container, styles.centerView, { backgroundColor: '#05080f' }]}>
+        <ActivityIndicator size="large" color="#a855f7" />
       </View>
     );
   }
 
   return (
-    <LinearGradient
-      colors={[theme.gradientStart || '#000000', theme.gradientEnd || '#1A1A1A']}
-      style={styles.container}
-    >
+    <LinearGradient colors={['#05080f', '#0b111e']} style={styles.container}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + 100 }
+          { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + 40 }
         ]}
+        showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Feather name="arrow-left" size={24} color={theme.text} />
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButtonNative}>
+          <Feather name="arrow-left" size={22} color="#a855f7" />
         </Pressable>
 
-        <ThemedText type="h2" style={{ marginBottom: Spacing.xs }}>
-          {isEditing ? "Editar Promoción Flash" : "Crear Promoción Flash"}
+        <ThemedText style={styles.screenTitle}>
+          {isEditing ? "Editar Oferta Flash" : "Lanzar Oferta Flash"}
         </ThemedText>
-        <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.xl }}>
-          Duración: 5, 10 o 15 minutos
+        <ThemedText style={styles.screenSubtitle}>
+          Configurá los disparadores de tiempo y stock inmediato.
         </ThemedText>
 
-        <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <ThemedText type="small" style={{ marginBottom: Spacing.xs }}>Producto *</ThemedText>
+        <View style={styles.formCardNative}>
+          <ThemedText style={styles.inputLabelNative}>Seleccionar Producto comercial *</ThemedText>
           <Pressable
-            style={[styles.productSelector, { backgroundColor: theme.background, borderColor: theme.border }]}
+            style={styles.productSelectorNative}
             onPress={() => setShowProductSelector(true)}
           >
             {selectedProduct ? (
-              <View style={styles.selectedProduct}>
+              <View style={styles.selectedProductNative}>
                 <Image
                   source={{ uri: selectedProduct.image || "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=400&fit=crop" }}
-                  style={styles.selectedProductImage}
+                  style={styles.selectedProductImageNative}
                   contentFit="cover"
                 />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <ThemedText type="small" style={{ fontWeight: "600" }}>{selectedProduct.name}</ThemedText>
-                  <ThemedText type="caption" style={{ color: theme.textSecondary }}>{selectedProduct.category}</ThemedText>
-                  <ThemedText type="small" style={{ color: "#8B5CF6", fontWeight: "700" }}>
-                    Precio original: ${selectedProduct.price.toLocaleString('es-AR')}
-                  </ThemedText>
+                  <ThemedText style={{ fontWeight: "800", color: '#FFF', fontSize: 15 }}>{selectedProduct.name}</ThemedText>
+                  <ThemedText style={{ color: '#94a3b8', fontSize: 12 }}>Precio Carta: ${selectedProduct.price.toLocaleString('es-AR')}</ThemedText>
                 </View>
               </View>
             ) : (
-              <ThemedText style={{ color: theme.textSecondary }}>Seleccionar producto del menú</ThemedText>
+              <ThemedText style={{ color: '#64748b', fontWeight: '500' }}>Toca para abrir la lista del menú...</ThemedText>
             )}
-            <Feather name="chevron-down" size={20} color={theme.textSecondary} />
+            <Feather name="chevron-down" size={20} color="#a855f7" />
           </Pressable>
 
-          <ThemedText type="small" style={{ marginTop: Spacing.md, marginBottom: Spacing.xs }}>
-            Precio Promocional *
-          </ThemedText>
+          <ThemedText style={styles.inputLabelNative}>Precio Promocional Líquido *</ThemedText>
           <TextInput
-            style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
+            style={styles.inputNative}
             value={discountedPrice}
             onChangeText={setDiscountedPrice}
-            placeholder={selectedProduct ? `Menor a ${selectedProduct.price}` : "0"}
-            placeholderTextColor={theme.textSecondary}
+            placeholder={selectedProduct ? `Debe ser menor a ${selectedProduct.price}` : "Ingresá el valor de oferta"}
+            placeholderTextColor="#64748b"
             keyboardType="numeric"
           />
 
-          <ThemedText type="small" style={{ marginTop: Spacing.md, marginBottom: Spacing.xs }}>
-            Stock Disponible *
-          </ThemedText>
+          <ThemedText style={styles.inputLabelNative}>Unidades de Stock Límitado *</ThemedText>
           <TextInput
-            style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
+            style={styles.inputNative}
             value={stock}
             onChangeText={setStock}
-            placeholder="Ej: 20"
-            placeholderTextColor={theme.textSecondary}
+            placeholder="Ej: 15 canillas o combos"
+            placeholderTextColor="#64748b"
             keyboardType="numeric"
           />
 
-          <ThemedText type="small" style={{ marginTop: Spacing.md, marginBottom: Spacing.sm }}>
-            Duración *
-          </ThemedText>
-          <View style={styles.durationRow}>
-            {[5, 10, 15].map((min) => (
-              <Pressable
-                key={min}
-                onPress={() => {
-                  setDuration(min as 5 | 10 | 15);
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }}
-                style={[
-                  styles.durationButton,
-                  { backgroundColor: duration === min ? "#8B5CF6" : theme.background }
-                ]}
-              >
-                <ThemedText style={{ color: duration === min ? "#FFF" : theme.text }}>
-                  {min} min
-                </ThemedText>
-              </Pressable>
-            ))}
+          <ThemedText style={styles.inputLabelNative}>Duración en Radar (Minutos) *</ThemedText>
+          <View style={styles.durationRowNative}>
+            {[5, 10, 15].map((min) => {
+              const isSelected = duration === min;
+              return (
+                <Pressable
+                  key={min}
+                  onPress={() => {
+                    setDuration(min as 5 | 10 | 15);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  style={[
+                    styles.durationButtonNative,
+                    isSelected ? styles.durationActiveNative : styles.durationInactiveNative
+                  ]}
+                >
+                  <ThemedText style={[styles.durationTextNative, { color: isSelected ? "#05080f" : "#cbd5e1" }]}>
+                    {min} min
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
+        {/* 🪐 BOTÓN ACCIÓN DE ENVÍO REDISEÑADO */}
         <Pressable
           onPress={handleCreate}
           disabled={loading || !selectedProduct}
-          style={[styles.createButton, { backgroundColor: "#8B5CF6", opacity: (loading || !selectedProduct) ? 0.6 : 1 }]}
+          style={({ pressed }) => [
+            styles.createButtonNative,
+            { backgroundColor: pressed ? "rgba(168, 85, 247, 0.85)" : "#a855f7" },
+            (loading || !selectedProduct) && { opacity: 0.4 }
+          ]}
         >
-          <Feather name="zap" size={20} color="#FFF" style={{ marginRight: Spacing.sm }} />
-          <ThemedText style={{ color: "#FFF", fontWeight: "600" }}>
-            {loading ? "Guardando..." : isEditing ? "Actualizar Promoción" : "Crear Promoción Flash"}
-          </ThemedText>
+          {loading ? (
+            <ActivityIndicator size="small" color="#05080f" />
+          ) : (
+            <>
+              <Feather name="zap" size={18} color="#05080f" style={{ marginRight: 8 }} />
+              <ThemedText style={styles.createButtonTextNative}>
+                {isEditing ? "Confirmar Modificación" : "Lanzar Promoción Flash"}
+              </ThemedText>
+            </>
+          )}
         </Pressable>
       </ScrollView>
 
-      {/* Product Selector Modal */}
+      {/* 🪐 PRODUCT SELECTOR MODAL REDISEÑADO EN OSCURO COMPLETO */}
       {showProductSelector && (
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="h3">Seleccionar Producto</ThemedText>
-              <Pressable onPress={() => setShowProductSelector(false)}>
-                <Feather name="x" size={24} color={theme.text} />
+        <View style={styles.modalOverlayNative}>
+          <View style={styles.modalContentNative}>
+            <View style={styles.modalHeaderNative}>
+              <ThemedText style={{ fontSize: 18, fontWeight: '900', color: '#FFF' }}>Vincular Producto</ThemedText>
+              <Pressable style={styles.closeModalBtn} onPress={() => setShowProductSelector(false)}>
+                <Feather name="x" size={20} color="#a855f7" />
               </Pressable>
             </View>
             <FlatList
               data={products}
               renderItem={renderProduct}
               keyExtractor={(item) => item.id}
-              style={{ maxHeight: 400 }}
+              style={{ maxHeight: 380 }}
+              showsVerticalScrollIndicator={false}
               ListEmptyComponent={
-                <View style={styles.emptyProducts}>
-                  <Feather name="package" size={48} color={theme.textSecondary} />
-                  <ThemedText style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
-                    No hay productos disponibles
+                <View style={styles.emptyProductsNative}>
+                  <Feather name="package" size={40} color="#64748b" />
+                  <ThemedText style={{ color: '#94a3b8', marginTop: Spacing.md, fontWeight: '700' }}>
+                    No hay productos en carta
                   </ThemedText>
-                  <ThemedText style={{ color: theme.textSecondary, textAlign: "center", marginTop: Spacing.sm }}>
-                    Ve a la pestaña Menú para agregar productos
+                  <ThemedText style={{ color: '#64748b', textAlign: "center", marginTop: 4, fontSize: 13 }}>
+                    Cargá insumos dentro de la sección Menú primero.
                   </ThemedText>
                 </View>
               }
@@ -312,95 +316,37 @@ export default function CreateFlashPromotionScreen({ route }: any) {
   );
 }
 
-const getStyles = (theme: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
+  centerView: { justifyContent: "center", alignItems: "center" },
   scrollContent: { paddingHorizontal: Spacing.lg },
-  backButton: { marginBottom: Spacing.lg },
-  card: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xl,
-    marginBottom: Spacing.lg,
-  },
-  input: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    fontSize: 16,
-  },
-  productSelector: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  selectedProduct: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  selectedProductImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  durationRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
-  durationButton: {
-    flex: 1,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-  },
-  createButton: {
-    flexDirection: "row",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: 12,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  productCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-  },
-  productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  emptyProducts: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-  },
+  backButtonNative: { width: 38, height: 38, borderRadius: 19, backgroundColor: "rgba(255,255,255,0.04)", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: Spacing.md },
+  screenTitle: { fontSize: 22, fontWeight: '900', color: '#FFF' },
+  screenSubtitle: { fontSize: 13, color: '#94a3b8', marginTop: 2, marginBottom: Spacing.xl, fontWeight: '500' },
+  
+  formCardNative: { padding: Spacing.lg, borderRadius: BorderRadius.lg, backgroundColor: "rgba(15, 23, 42, 0.55)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.06)" },
+  inputLabelNative: { fontSize: 13, fontWeight: "700", color: "#cbd5e1", marginBottom: 6, marginTop: Spacing.md },
+  inputNative: { height: 48, backgroundColor: "rgba(5, 8, 15, 0.4)", borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, fontSize: 15, color: "#FFF", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  
+  productSelectorNative: { height: 52, paddingHorizontal: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(5, 8, 15, 0.4)", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  selectedProductNative: { flexDirection: "row", alignItems: "center", flex: 1 },
+  selectedProductImageNative: { width: 36, height: 36, borderRadius: BorderRadius.sm },
+  
+  durationRowNative: { flexDirection: "row", gap: Spacing.sm, marginTop: 4 },
+  durationButtonNative: { flex: 1, height: 46, borderRadius: BorderRadius.md, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  durationActiveNative: { backgroundColor: '#a855f7', borderColor: '#a855f7' },
+  durationInactiveNative: { backgroundColor: 'rgba(5, 8, 15, 0.4)', borderColor: 'rgba(255,255,255,0.1)' },
+  durationTextNative: { fontSize: 14, fontWeight: '800' },
+  
+  createButtonNative: { flexDirection: "row", height: 50, borderRadius: BorderRadius.full, alignItems: "center", justifyContent: "center", marginTop: Spacing.xl, ...Shadows.md, shadowColor: "#a855f7", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  createButtonTextNative: { color: "#05080f", fontWeight: "900", fontSize: 15, letterSpacing: 0.3 },
+  
+  modalOverlayNative: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(5, 8, 15, 0.85)", justifyContent: "center", alignItems: "center", padding: 20 },
+  modalContentNative: { width: "100%", maxWidth: 400, borderRadius: BorderRadius.xl, padding: 20, maxHeight: "75%", backgroundColor: '#0b111e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  modalHeaderNative: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  closeModalBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center' },
+  
+  productCardNative: { flexDirection: "row", alignItems: "center", padding: Spacing.sm, borderRadius: BorderRadius.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(15, 23, 42, 0.4)" },
+  productImageNative: { width: 46, height: 46, borderRadius: BorderRadius.sm },
+  emptyProductsNative: { alignItems: "center", justifyContent: "center", paddingVertical: 40 },
 });
