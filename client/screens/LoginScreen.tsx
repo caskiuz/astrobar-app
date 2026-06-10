@@ -205,7 +205,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       }
     } catch (error: any) {
       showToast(error.message || "Error al iniciar sesión", "error");
-    } finaly {
+    } finally {
       setIsLoading(false);
     }
   };
