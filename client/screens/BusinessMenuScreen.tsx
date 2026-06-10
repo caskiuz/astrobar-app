@@ -4,9 +4,9 @@ import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "@/hooks/useTheme";
 import { apiRequest } from "@/lib/query-client";
-import { AstroBarColors, Spacing } from "@/constants/theme";
+import { AstroBarColors, Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import * as ImagePicker from 'expo-image-picker';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from 'haptics';
 import { Image } from "expo-image";
 
 interface Product {
@@ -21,7 +21,7 @@ interface Product {
 
 export default function BusinessMenuScreen() {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -114,7 +114,6 @@ export default function BusinessMenuScreen() {
         setProducts(data.products || []);
       }
       
-      // Cargar límites
       const limitsResponse = await apiRequest("GET", "/api/business/limits");
       const limitsData = await limitsResponse.json();
       if (limitsData.success) {
@@ -148,7 +147,7 @@ export default function BusinessMenuScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              const response = await apiRequest("DELETE", `/api/business/products/${productId}`);
+              await apiRequest("DELETE", `/api/business/products/${productId}`);
               loadProducts();
             } catch (error: any) {
               Alert.alert("Error", error.message);
@@ -174,7 +173,7 @@ export default function BusinessMenuScreen() {
 
   const renderProduct = ({ item }: { item: Product }) => (
     <TouchableOpacity 
-      style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+      style={styles.card}
       onPress={() => {
         setEditingProduct(item);
         setNewProduct({
@@ -197,32 +196,32 @@ export default function BusinessMenuScreen() {
           />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={[styles.name, { color: theme.text }]}>{item.name}</Text>
-          <Text style={[styles.category, { color: theme.textSecondary }]}>{item.category}</Text>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.category}>{item.category}</Text>
         </View>
-        <Text style={[styles.price, { color: AstroBarColors.primary }]}>${item.price}</Text>
+        <Text style={styles.price}>${item.price}</Text>
       </View>
 
       {item.description && (
-        <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={2}>
+        <Text style={styles.description} numberOfLines={2}>
           {item.description}
         </Text>
       )}
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: item.isAvailable ? "#4CAF50" : "#F44336" }]}
+          style={[styles.actionBtn, { backgroundColor: item.isAvailable ? "rgba(57, 255, 20, 0.15)", borderWidth: 1, borderColor: "#39ff14" }]}
           onPress={() => toggleAvailability(item.id, item.isAvailable)}
         >
-          <Feather name={item.isAvailable ? "check-circle" : "x-circle"} size={16} color="#fff" />
-          <Text style={styles.actionText}>{item.isAvailable ? "Disponible" : "No disponible"}</Text>
+          <Feather name={item.isAvailable ? "check-circle" : "x-circle"} size={14} color={item.isAvailable ? "#39ff14" : "#ff4c4c"} />
+          <Text style={[styles.actionText, { color: item.isAvailable ? "#39ff14" : "#ff4c4c" }]}>{item.isAvailable ? "Disponible" : "Pausado"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: theme.border }]}
+          style={[styles.actionBtn, { backgroundColor: "rgba(255, 76, 76, 0.12)", borderWidth: 1, borderColor: "rgba(255, 76, 76, 0.3)" }]}
           onPress={() => handleDelete(item.id)}
         >
-          <Feather name="trash-2" size={16} color="#F44336" />
+          <Feather name="trash-2" size={14} color="#ff4c4c" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -230,54 +229,53 @@ export default function BusinessMenuScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={AstroBarColors.primary} />
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#00f2fe" />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header con navegación */}
+    <View style={styles.container}>
+      {/* 🪐 NAVIDAD SUPERIOR ULTRA UNIFICADA CIAN */}
       <View style={styles.topNav}>
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessPromotions')}
         >
-          <Feather name="volume-2" size={20} color="#999" />
-          <Text style={[styles.navButtonText, { color: '#999' }]}>Promociones</Text>
+          <Feather name="megaphone" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Promociones</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.navButton, styles.navButtonActive]}
-          onPress={() => {}}
-        >
-          <Feather name="coffee" size={20} color="#FFD700" />
-          <Text style={styles.navButtonText}>Menú</Text>
+        
+        <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
+          <Feather name="restaurant" size={18} color="#00f2fe" />
+          <Text style={[styles.navButtonText, { color: '#00f2fe' }]}>Menú</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('PromotionTransactions')}
         >
-          <Feather name="list" size={20} color="#999" />
-          <Text style={[styles.navButtonText, { color: '#999' }]}>Historial</Text>
+          <Feather name="list" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Historial</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Limits Header */}
+      {/* 📊 BARRA DE LÍMITES PREMIUM */}
       {limits && (
-        <View style={[styles.limitsContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={styles.limitsContainer}>
           <View style={styles.limitItem}>
-            <Text style={[styles.limitLabel, { color: theme.textSecondary }]}>Productos</Text>
-            <Text style={[styles.limitValue, { color: limits.products.percentage >= 90 ? "#F44336" : theme.text }]}>
-              {limits.products.current}/{limits.products.max}
+            <Text style={styles.limitLabel}>Productos En Carta</Text>
+            <Text style={[styles.limitValue, { color: limits.products.percentage >= 90 ? "#ff4c4c" : "#FFF" }]}>
+              {limits.products.current} / {limits.products.max}
             </Text>
-            <View style={[styles.limitBar, { backgroundColor: theme.border }]}>
+            <View style={styles.limitBar}>
               <View 
                 style={[
                   styles.limitProgress, 
                   { 
                     width: `${Math.min(limits.products.percentage, 100)}%`,
-                    backgroundColor: limits.products.percentage >= 90 ? "#F44336" : AstroBarColors.primary
+                    backgroundColor: limits.products.percentage >= 90 ? "#ff4c4c" : "#00f2fe"
                   }
                 ]} 
               />
@@ -286,30 +284,29 @@ export default function BusinessMenuScreen() {
         </View>
       )}
 
+      {/* 🌌 FILTROS HORIZONTALES CYBERPUNK */}
       <View style={styles.filterContainer}>
         <FlatList
           horizontal
           data={categories}
           keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.filterBtn,
-                { backgroundColor: filter === item ? AstroBarColors.primary : theme.card },
-              ]}
-              onPress={() => setFilter(item)}
-            >
-              <Text
+          renderItem={({ item }) => {
+            const isSelected = filter === item;
+            return (
+              <TouchableOpacity
                 style={[
-                  styles.filterText,
-                  { color: filter === item ? "#fff" : theme.text },
+                  styles.filterBtn,
+                  { backgroundColor: isSelected ? "#00f2fe" : "rgba(15, 23, 42, 0.55)", borderWidth: 1, borderColor: isSelected ? "#00f2fe" : "rgba(255,255,255,0.06)" },
                 ]}
+                onPress={() => setFilter(item)}
               >
-                {item === "all" ? "Todos" : item}
-              </Text>
-            </TouchableOpacity>
-          )}
+                <Text style={[styles.filterText, { color: isSelected ? "#05080f" : "#cbd5e1" }]}>
+                  {item === "all" ? "Todos" : item}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       </View>
 
@@ -318,25 +315,25 @@ export default function BusinessMenuScreen() {
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={AstroBarColors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00f2fe" />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Feather name="package" size={48} color={theme.textSecondary} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No hay productos en esta categoría
-            </Text>
+            <Feather name="package" size={40} color="#64748b" />
+            <Text style={styles.emptyText}>No hay productos en esta categoría</Text>
           </View>
         }
       />
 
+      {/* 🚀 FAB CIAN NEÓN ESPACIAL COMPACTO */}
       <TouchableOpacity
         style={[
           styles.fab, 
           { 
-            backgroundColor: limits?.products.canAdd ? AstroBarColors.primary : "#666",
-            opacity: limits?.products.canAdd ? 1 : 0.6
+            backgroundColor: limits?.products.canAdd ? "#00f2fe" : "#334155",
+            opacity: limits?.products.canAdd ? 1 : 0.5
           }
         ]}
         onPress={() => {
@@ -350,9 +347,10 @@ export default function BusinessMenuScreen() {
           }
         }}
       >
-        <Feather name="plus" size={24} color="#fff" />
+        <Feather name="plus" size={22} color={limits?.products.canAdd ? "#05080f" : "#94a3b8"} />
       </TouchableOpacity>
 
+      {/* 🪐 MODAL NUEVO PRODUCTO CYBERPUNK */}
       <Modal
         visible={showCreateModal}
         transparent
@@ -360,76 +358,75 @@ export default function BusinessMenuScreen() {
         onRequestClose={() => setShowCreateModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Nuevo Producto</Text>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Nuevo Insumo</Text>
             
-            {/* Botón para subir imagen */}
             <TouchableOpacity
-              style={[styles.imagePickerButton, { backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1 }]}
+              style={styles.imagePickerButton}
               onPress={handlePickImage}
               disabled={isUploadingImage}
             >
               {isUploadingImage ? (
-                <ActivityIndicator size="large" color={AstroBarColors.primary} />
+                <ActivityIndicator size="small" color="#00f2fe" />
               ) : newProduct.image ? (
                 <Image source={{ uri: newProduct.image }} style={styles.previewImage} contentFit="cover" />
               ) : (
                 <View style={{ alignItems: 'center' }}>
-                  <Feather name="camera" size={32} color={theme.textSecondary} />
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 8 }]}>
-                    Toca para agregar foto
+                  <Feather name="camera" size={26} color="#00f2fe" />
+                  <Text style={[styles.inputLabel, { color: "#94a3b8", marginTop: Spacing.xs, fontWeight: '600' }]}>
+                    Vincular fotografía promocional
                   </Text>
                 </View>
               )}
             </TouchableOpacity>
             
             <TextInput
-              style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
-              placeholder="Nombre del producto"
-              placeholderTextColor={theme.textSecondary}
+              style={styles.input}
+              placeholder="Nombre comercial (ej: Quilmes 1L)"
+              placeholderTextColor="#64748b"
               value={newProduct.name}
               onChangeText={(text) => setNewProduct({...newProduct, name: text})}
             />
             
-            <View style={[styles.input, { backgroundColor: theme.background }]}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Categoría:</Text>
+            <View style={[styles.input, { height: 'auto', paddingVertical: Spacing.md }]}>
+              <Text style={[styles.inputLabel, { color: '#cbd5e1', fontWeight: '700', marginBottom: Spacing.sm }]}>Categoría asignada:</Text>
               <View style={styles.categoryButtons}>
-                {categories.filter(c => c !== "all").map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[
-                      styles.categoryButton,
-                      { 
-                        backgroundColor: newProduct.category === category ? AstroBarColors.primary : theme.border,
-                        borderColor: newProduct.category === category ? AstroBarColors.primary : theme.border
-                      }
-                    ]}
-                    onPress={() => setNewProduct({...newProduct, category})}
-                  >
-                    <Text style={[
-                      styles.categoryButtonText,
-                      { color: newProduct.category === category ? "#fff" : theme.text }
-                    ]}>
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {categories.filter(c => c !== "all").map((category) => {
+                  const isCatSelected = newProduct.category === category;
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryButton,
+                        { 
+                          backgroundColor: isCatSelected ? "#00f2fe" : "rgba(5, 8, 15, 0.4)",
+                          borderColor: isCatSelected ? "#00f2fe" : "rgba(255,255,255,0.08)"
+                        }
+                      ]}
+                      onPress={() => setNewProduct({...newProduct, category})}
+                    >
+                      <Text style={[styles.categoryButtonText, { color: isCatSelected ? "#05080f" : "#cbd5e1" }]}>
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
             
             <TextInput
-              style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
-              placeholder="Precio (ej: 1500)"
-              placeholderTextColor={theme.textSecondary}
+              style={styles.input}
+              placeholder="Precio Regular de Carta ($)"
+              placeholderTextColor="#64748b"
               value={newProduct.price}
               onChangeText={(text) => setNewProduct({...newProduct, price: text})}
               keyboardType="numeric"
             />
             
             <TextInput
-              style={[styles.inputMultiline, { backgroundColor: theme.background, color: theme.text }]}
-              placeholder="Descripción (ingredientes, detalles...)"
-              placeholderTextColor={theme.textSecondary}
+              style={styles.inputMultiline}
+              placeholder="Detalle o descripción de los ingredientes..."
+              placeholderTextColor="#64748b"
               value={newProduct.description}
               onChangeText={(text) => setNewProduct({...newProduct, description: text})}
               multiline
@@ -454,7 +451,6 @@ export default function BusinessMenuScreen() {
                     Alert.alert("Error", "Nombre y precio son obligatorios");
                     return;
                   }
-                  
                   try {
                     const productData = {
                       name: newProduct.name,
@@ -464,10 +460,8 @@ export default function BusinessMenuScreen() {
                       image: newProduct.image || getDefaultImage(newProduct.category),
                       isAvailable: true
                     };
-                    
                     const response = await apiRequest("POST", "/api/business/products", productData);
                     const data = await response.json();
-                    
                     if (data.success) {
                       setShowCreateModal(false);
                       setNewProduct({ name: "", category: "Bebidas", price: "", description: "", image: "" });
@@ -479,13 +473,14 @@ export default function BusinessMenuScreen() {
                   }
                 }}
               >
-                <Text style={styles.createButtonText}>Crear Producto</Text>
+                <Text style={styles.createButtonText}>Crear</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
+      {/* 🪐 MODAL EDITAR PRODUCTO CYBERPUNK */}
       <Modal
         visible={showEditModal}
         transparent
@@ -493,12 +488,11 @@ export default function BusinessMenuScreen() {
         onRequestClose={() => setShowEditModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Editar Producto</Text>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Editar Insumo</Text>
             
-            {/* Botón para subir imagen */}
             <TouchableOpacity
-              style={[styles.imagePickerButton, { backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1 }]}
+              style={styles.imagePickerButton}
               onPress={async () => {
                 try {
                   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -506,20 +500,17 @@ export default function BusinessMenuScreen() {
                     Alert.alert('Permiso denegado', 'Necesitamos acceso a tus fotos');
                     return;
                   }
-
                   const result = await ImagePicker.launchImageLibraryAsync({
                     mediaTypes: ImagePicker.MediaTypeOptions.Images,
                     allowsEditing: true,
                     aspect: [1, 1],
                     quality: 0.5,
                   });
-
                   if (!result.canceled && result.assets[0]) {
                     setIsUploadingImage(true);
                     const response = await fetch(result.assets[0].uri);
                     const blob = await response.blob();
                     const reader = new FileReader();
-                    
                     reader.onloadend = async () => {
                       const base64data = reader.result as string;
                       const apiResponse = await apiRequest('POST', '/api/upload/product-image', { image: base64data });
@@ -541,13 +532,13 @@ export default function BusinessMenuScreen() {
               disabled={isUploadingImage}
             >
               {isUploadingImage ? (
-                <ActivityIndicator size="large" color={AstroBarColors.primary} />
+                <ActivityIndicator size="small" color="#00f2fe" />
               ) : newProduct.image ? (
                 <Image source={{ uri: newProduct.image }} style={styles.previewImage} contentFit="cover" />
               ) : (
                 <View style={{ alignItems: 'center' }}>
-                  <Feather name="camera" size={32} color={theme.textSecondary} />
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 8 }]}>
+                  <Feather name="camera" size={26} color="#00f2fe" />
+                  <Text style={[styles.inputLabel, { color: "#94a3b8", marginTop: Spacing.xs, fontWeight: '600' }]}>
                     Toca para cambiar foto
                   </Text>
                 </View>
@@ -555,52 +546,52 @@ export default function BusinessMenuScreen() {
             </TouchableOpacity>
             
             <TextInput
-              style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
+              style={styles.input}
               placeholder="Nombre del producto"
-              placeholderTextColor={theme.textSecondary}
+              placeholderTextColor="#64748b"
               value={newProduct.name}
               onChangeText={(text) => setNewProduct({...newProduct, name: text})}
             />
             
-            <View style={[styles.input, { backgroundColor: theme.background }]}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Categoría:</Text>
+            <View style={[styles.input, { height: 'auto', paddingVertical: Spacing.md }]}>
+              <Text style={[styles.inputLabel, { color: '#cbd5e1', fontWeight: '700', marginBottom: Spacing.sm }]}>Categoría:</Text>
               <View style={styles.categoryButtons}>
-                {categories.filter(c => c !== "all").map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[
-                      styles.categoryButton,
-                      { 
-                        backgroundColor: newProduct.category === category ? AstroBarColors.primary : theme.border,
-                        borderColor: newProduct.category === category ? AstroBarColors.primary : theme.border
-                      }
-                    ]}
-                    onPress={() => setNewProduct({...newProduct, category})}
-                  >
-                    <Text style={[
-                      styles.categoryButtonText,
-                      { color: newProduct.category === category ? "#fff" : theme.text }
-                    ]}>
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {categories.filter(c => c !== "all").map((category) => {
+                  const isCatSelected = newProduct.category === category;
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryButton,
+                        { 
+                          backgroundColor: isCatSelected ? "#00f2fe" : "rgba(5, 8, 15, 0.4)",
+                          borderColor: isCatSelected ? "#00f2fe" : "rgba(255,255,255,0.08)"
+                        }
+                      ]}
+                      onPress={() => setNewProduct({...newProduct, category})}
+                    >
+                      <Text style={[styles.categoryButtonText, { color: isCatSelected ? "#05080f" : "#cbd5e1" }]}>
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
             
             <TextInput
-              style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
-              placeholder="Precio (ej: 1500)"
-              placeholderTextColor={theme.textSecondary}
+              style={styles.input}
+              placeholder="Precio regular de carta ($)"
+              placeholderTextColor="#64748b"
               value={newProduct.price}
               onChangeText={(text) => setNewProduct({...newProduct, price: text})}
               keyboardType="numeric"
             />
             
             <TextInput
-              style={[styles.inputMultiline, { backgroundColor: theme.background, color: theme.text }]}
+              style={styles.inputMultiline}
               placeholder="Descripción (ingredientes, detalles...)"
-              placeholderTextColor={theme.textSecondary}
+              placeholderTextColor="#64748b"
               value={newProduct.description}
               onChangeText={(text) => setNewProduct({...newProduct, description: text})}
               multiline
@@ -627,7 +618,6 @@ export default function BusinessMenuScreen() {
                     Alert.alert("Error", "Nombre y precio son obligatorios");
                     return;
                   }
-                  
                   try {
                     const productData = {
                       name: newProduct.name,
@@ -637,10 +627,8 @@ export default function BusinessMenuScreen() {
                       image: newProduct.image || editProductImage || getDefaultImage(newProduct.category),
                       isAvailable: true
                     };
-                    
                     const response = await apiRequest("PUT", `/api/business/products/${editingProduct.id}`, productData);
                     const data = await response.json();
-                    
                     if (data.success) {
                       setShowEditModal(false);
                       setEditingProduct(null);
@@ -665,126 +653,98 @@ export default function BusinessMenuScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: '#05080f' },
+  center: { justifyContent: "center", alignItems: "center" },
   topNav: {
     flexDirection: 'row',
-    backgroundColor: '#1A1F3A',
-    paddingTop: 40,
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(11, 17, 30, 0.4)',
+    paddingTop: 44,
+    paddingHorizontal: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   navButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     gap: 6,
   },
   navButtonActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#FFD700',
+    borderBottomColor: '#00f2fe',
   },
   navButtonText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FFD700',
+    fontSize: 13,
+    fontWeight: '800',
+    includeFontPadding: false,
   },
   filterContainer: {
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderColor: "rgba(255,255,255,0.05)",
   },
   filterBtn: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 7,
+    borderRadius: BorderRadius.full,
     marginRight: Spacing.sm,
   },
   filterText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "800",
   },
-  list: {
-    padding: Spacing.md,
-  },
+  list: { padding: Spacing.md, paddingBottom: 90 },
   card: {
     padding: Spacing.md,
-    borderRadius: 12,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: Spacing.xs,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  category: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  description: {
-    fontSize: 14,
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  actions: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
+  name: { fontSize: 16, fontWeight: "900", color: '#FFF' },
+  category: { fontSize: 12, marginTop: 2, color: '#94a3b8', fontWeight: '500' },
+  price: { fontSize: 18, fontWeight: "900", color: '#00f2fe' },
+  description: { fontSize: 13, marginBottom: Spacing.md, color: '#94a3b8', lineHeight: 18 },
+  actions: { flexDirection: "row", gap: Spacing.sm },
   actionBtn: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 5,
   },
-  actionText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  empty: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    marginTop: Spacing.md,
-  },
+  actionText: { fontSize: 11, fontWeight: "800" },
+  empty: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 80 },
+  emptyText: { fontSize: 14, marginTop: Spacing.md, color: '#64748b', fontWeight: '600' },
   fab: {
     position: "absolute",
     right: 20,
     bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
+    ...Shadows.md,
+    shadowColor: "#00f2fe",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
     elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(5, 8, 15, 0.85)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -792,123 +752,54 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "100%",
     maxWidth: 400,
-    borderRadius: 12,
+    borderRadius: BorderRadius.xl,
     padding: 20,
+    backgroundColor: '#0b111e',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
-  },
+  modalTitle: { fontSize: 20, fontWeight: "900", marginBottom: 20, textAlign: "center", color: '#FFF' },
   input: {
-    borderRadius: 8,
-    padding: 12,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
     marginBottom: 16,
-    fontSize: 16,
+    fontSize: 15,
+    color: '#FFF',
+    backgroundColor: "rgba(5, 8, 15, 0.4)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   inputMultiline: {
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
     marginBottom: 16,
-    fontSize: 16,
-    minHeight: 80,
+    fontSize: 15,
+    color: '#FFF',
+    backgroundColor: "rgba(5, 8, 15, 0.4)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    minHeight: 74,
     textAlignVertical: "top",
   },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#666",
-  },
-  createButton: {
-    backgroundColor: AstroBarColors.primary,
-  },
-  cancelButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  createButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  inputLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  categoryButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  categoryButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  categoryButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  productImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  limitsContainer: {
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    marginBottom: Spacing.sm,
-  },
-  limitItem: {
-    alignItems: "center",
-  },
-  limitLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  limitValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  limitBar: {
-    width: "100%",
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  limitProgress: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  imagePickerButton: {
-    padding: 20,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 120,
-    marginBottom: 16,
-  },
-  previewImage: {
-    width: "100%",
-    height: 120,
-    borderRadius: 8,
-  },
+  modalButtons: { flexDirection: "row", gap: 12 },
+  modalButton: { flex: 1, height: 44, borderRadius: BorderRadius.full, alignItems: "center", justifyContent: "center" },
+  cancelButton: { backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  createButton: { backgroundColor: "#00f2fe" },
+  cancelButtonText: { color: "#cbd5e1", fontWeight: "800", fontSize: 14 },
+  createButtonText: { color: "#05080f", fontWeight: "900", fontSize: 14 },
+  inputLabel: { fontSize: 13, fontWeight: '700' },
+  categoryButtons: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  categoryButton: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: BorderRadius.full, borderWidth: 1 },
+  categoryButtonText: { fontSize: 11, fontWeight: "800" },
+  productImageContainer: { width: 44, height: 44, borderRadius: BorderRadius.sm, backgroundColor: "rgba(255,255,255,0.03)", justifyContent: "center", alignItems: "center", overflow: 'hidden' },
+  productImage: { width: 44, height: 44 },
+  limitsContainer: { padding: Spacing.md, borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(15, 23, 42, 0.2)' },
+  limitItem: { alignItems: "center" },
+  limitLabel: { fontSize: 11, color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: 2 },
+  limitValue: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
+  limitBar: { width: "100%", height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: BorderRadius.full, overflow: "hidden" },
+  limitProgress: { height: "100%", borderRadius: BorderRadius.full },
+  imagePickerButton: { padding: 16, borderRadius: BorderRadius.md, alignItems: "center", justifyContent: "center", minHeight: 100, marginBottom: 16, backgroundColor: "rgba(5, 8, 15, 0.4)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", borderStyle: 'dashed' },
+  previewImage: { width: "100%", height: 100, borderRadius: BorderRadius.sm },
 });

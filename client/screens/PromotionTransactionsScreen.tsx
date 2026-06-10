@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiRequest } from '../lib/query-client';
 import { useBusiness } from '../contexts/BusinessContext';
 
 import { useTheme } from '@/hooks/useTheme';
+import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 interface Transaction {
   id: string;
@@ -21,6 +23,8 @@ interface Transaction {
 
 export default function PromotionTransactionsScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = getStyles(insets);
   const navigation = useNavigation<any>();
   const { selectedBusiness, businesses, setSelectedBusiness } = useBusiness();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -56,12 +60,12 @@ export default function PromotionTransactionsScreen() {
     loadTransactions();
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'pending': return '#FFD700';
-      case 'redeemed': return '#4CAF50';
-      case 'cancelled': return '#F44336';
-      default: return '#999';
+      case 'pending': return { bg: 'rgba(0, 242, 254, 0.12)', border: '#00f2fe', text: '#00f2fe' };
+      case 'redeemed': return { bg: 'rgba(57, 255, 20, 0.12)', border: '#39ff14', text: '#39ff14' };
+      case 'cancelled': return { bg: 'rgba(255, 76, 76, 0.12)', border: '#ff4c4c', text: '#ff4c4c' };
+      default: return { bg: 'rgba(255,255,255,0.05)', border: '#64748b', text: '#64748b' };
     }
   };
 
@@ -78,135 +82,160 @@ export default function PromotionTransactionsScreen() {
     ? transactions 
     : transactions.filter(t => t.status === filter);
 
-  const renderTransaction = ({ item }: { item: Transaction }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.promoTitle}>{item.promotionTitle}</Text>
-          <Text style={styles.userName}>{item.userName}</Text>
-          <Text style={styles.userPhone}>{item.userPhone}</Text>
+  const renderTransaction = ({ item }: { item: Transaction }) => {
+    const statusStyle = getStatusStyle(item.status);
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={{ flex: 1, marginRight: Spacing.sm }}>
+            <Text style={styles.promoTitle} numberOfLines={1}>{item.promotionTitle}</Text>
+            <Text style={styles.userName}>{item.userName}</Text>
+            <Text style={styles.userPhone}>{item.userPhone}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>{getStatusText(item.status)}</Text>
+          </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
-      </View>
 
-      <View style={styles.cardFooter}>
-        <View style={styles.amountRow}>
-          <Text style={styles.label}>Ganancia:</Text>
-          <Text style={styles.amount}>${item.businessRevenue.toFixed(2)}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.amountRow}>
+            <Text style={styles.label}>Caja neta:</Text>
+            <Text style={styles.amount}>${item.businessRevenue.toFixed(2)}</Text>
+          </View>
+          <Text style={styles.date}>
+            {new Date(item.createdAt).toLocaleString('es-AR', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </Text>
         </View>
-        <Text style={styles.date}>
-          {new Date(item.createdAt).toLocaleString('es-AR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
-        </Text>
-      </View>
 
-      {item.redeemedAt && (
-        <Text style={styles.redeemedText}>
-          Canjeado: {new Date(item.redeemedAt).toLocaleString('es-AR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
-        </Text>
-      )}
-    </View>
-  );
+        {item.redeemedAt && (
+          <View style={styles.redeemedRow}>
+            <Feather name="check" size={12} color="#39ff14" />
+            <Text style={styles.redeemedText}>
+              Canjeado: {new Date(item.redeemedAt).toLocaleString('es-AR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#00f2fe" />
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.topNav, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+    <View style={styles.container}>
+      {/* 🪐 CONTROL SUPERIOR INTEGRADO CIAN */}
+      <View style={styles.topNav}>
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessPromotions')}
         >
-          <Ionicons name="megaphone" size={20} color={theme.colors.text.secondary} />
-          <Text style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Promociones</Text>
+          <Ionicons name="megaphone" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Promociones</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessMenu')}
         >
-          <Ionicons name="restaurant" size={20} color={theme.colors.text.secondary} />
-          <Text style={[styles.navButtonText, { color: theme.colors.text.secondary }]}>Menú</Text>
+          <Ionicons name="restaurant" size={18} color="#94a3b8" />
+          <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Menú</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.navButton, styles.navButtonActive]}
-          onPress={() => {}}
-        >
-          <Ionicons name="list" size={20} color="#FFD700" />
-          <Text style={styles.navButtonText}>Historial</Text>
+        
+        <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
+          <Ionicons name="list" size={18} color="#00f2fe" />
+          <Text style={[styles.navButtonText, { color: '#00f2fe' }]}>Historial</Text>
         </TouchableOpacity>
       </View>
 
+      {/* MULTI-BAR SELECTOR CYBERPUNK */}
       {businesses.length > 1 && (
-        <View style={[styles.businessSelector, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+        <View style={styles.businessSelector}>
           <TouchableOpacity
             style={styles.businessButton}
             onPress={() => setShowBusinessSelector(!showBusinessSelector)}
           >
-            <Ionicons name="business" size={16} color="#FFD700" />
+            <Ionicons name="business" size={15} color="#00f2fe" />
             <Text style={styles.businessButtonText}>{selectedBusiness?.name || 'Seleccionar bar'}</Text>
-            <Ionicons name={showBusinessSelector ? "chevron-up" : "chevron-down"} size={16} color="#FFD700" />
+            <Ionicons name={showBusinessSelector ? "chevron-up" : "chevron-down"} size={15} color="#00f2fe" />
           </TouchableOpacity>
           {showBusinessSelector && (
             <ScrollView style={styles.businessList} horizontal showsHorizontalScrollIndicator={false}>
-              {businesses.map((business) => (
-                <TouchableOpacity
-                  key={business.id}
-                  style={[
-                    styles.businessItem,
-                    selectedBusiness?.id === business.id && styles.businessItemActive
-                  ]}
-                  onPress={() => {
-                    setSelectedBusiness(business);
-                    setShowBusinessSelector(false);
-                    setLoading(true);
-                    loadTransactions();
-                  }}
-                >
-                  <Text style={[
-                    styles.businessItemText,
-                    selectedBusiness?.id === business.id && styles.businessItemTextActive
-                  ]}>{business.name}</Text>
-                </TouchableOpacity>
-              ))}
+              {businesses.map((business) => {
+                const isBusSelected = selectedBusiness?.id === business.id;
+                return (
+                  <TouchableOpacity
+                    key={business.id}
+                    style={[styles.businessItem, isBusSelected && styles.businessItemActive]}
+                    onPress={() => {
+                      setSelectedBusiness(business);
+                      setShowBusinessSelector(false);
+                      setLoading(true);
+                      loadTransactions();
+                    }}
+                  >
+                    <Text style={[styles.businessItemText, isBusSelected && styles.businessItemTextActive]}>
+                      {business.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           )}
         </View>
       )}
 
-      <View style={[styles.filterContainer, { backgroundColor: theme.colors.surface }]}>
-        {(['all', 'pending', 'redeemed', 'cancelled'] as const).map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
-              {f === 'all' ? 'Todos' : getStatusText(f)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* 🌌 FILTROS DE ESTADO EN SCROLL FLUIDO ANTI-CORTES */}
+      <View style={styles.filterOuterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          {(['all', 'pending', 'redeemed', 'cancelled'] as const).map((f) => {
+            const isSelected = filter === f;
+            return (
+              <TouchableOpacity
+                key={f}
+                style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
+                onPress={() => setFilter(f)}
+              >
+                <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                  {f === 'all' ? 'Todos' : getStatusText(f)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      <View style={[styles.summary, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+      {/* 📊 PANEL INDICADOR DE VENTAS */}
+      <View style={styles.summary}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{transactions.length}</Text>
-          <Text style={styles.summaryLabel}>Total</Text>
+          <Text style={styles.summaryLabel}>Total emitido</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{transactions.filter(t => t.status === 'pending').length}</Text>
+          <Text style={[styles.summaryValue, { color: '#00f2fe' }]}>
+            {transactions.filter(t => t.status === 'pending').length}
+          </Text>
           <Text style={styles.summaryLabel}>Pendientes</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{transactions.filter(t => t.status === 'redeemed').length}</Text>
+          <Text style={[styles.summaryValue, { color: '#39ff14' }]}>
+            {transactions.filter(t => t.status === 'redeemed').length}
+          </Text>
           <Text style={styles.summaryLabel}>Canjeados</Text>
         </View>
       </View>
@@ -216,13 +245,16 @@ export default function PromotionTransactionsScreen() {
         renderItem={renderTransaction}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFD700" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00f2fe" />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="receipt-outline" size={64} color="#666" />
-            <Text style={styles.emptyText}>No hay transacciones</Text>
+            <View style={styles.emptyIconBox}>
+              <Ionicons name="receipt-outline" size={32} color="#64748b" />
+            </View>
+            <Text style={styles.emptyText}>No hay movimientos registrados</Text>
           </View>
         }
       />
@@ -230,145 +262,164 @@ export default function PromotionTransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0E27' },
+const getStyles = (insets: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#05080f' },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   topNav: {
     flexDirection: 'row',
-    backgroundColor: '#1A1F3A',
-    paddingTop: 40,
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(11, 17, 30, 0.4)',
+    paddingTop: insets.top + Spacing.xs,
+    paddingHorizontal: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   navButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     gap: 6,
   },
   navButtonActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#FFD700',
+    borderBottomColor: '#00f2fe',
   },
   navButtonText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FFD700',
+    fontSize: 13,
+    fontWeight: '800',
+    includeFontPadding: false,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 8,
-    backgroundColor: '#1A1F3A',
+  filterOuterContainer: {
+    backgroundColor: 'rgba(15, 23, 42, 0.2)',
+    borderBottomWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  filterScroll: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    gap: 10,
   },
   filterBtn: {
-    flex: 1,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: '#2A2F4A',
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   filterBtnActive: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#00f2fe',
+    borderColor: '#00f2fe',
   },
   filterText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#999',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#cbd5e1',
   },
   filterTextActive: {
-    color: '#000',
+    color: '#05080f',
   },
   summary: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#1A1F3A',
+    paddingVertical: Spacing.md,
+    backgroundColor: 'rgba(15, 23, 42, 0.3)',
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryValue: { fontSize: 24, fontWeight: 'bold', color: '#FFD700' },
-  summaryLabel: { fontSize: 12, color: '#999', marginTop: 4 },
-  list: { padding: 16 },
+  summaryItem: { flex: 1, alignItems: 'center', borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  summaryValue: { fontSize: 22, fontWeight: '900', color: '#FFF' },
+  summaryLabel: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontWeight: '600', textTransform: 'uppercase' },
+  
+  list: { padding: Spacing.md, paddingBottom: 40 },
   card: {
-    backgroundColor: '#1A1F3A',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#2A2F4A',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
   },
-  promoTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF', marginBottom: 4 },
-  userName: { fontSize: 14, color: '#CCC' },
-  userPhone: { fontSize: 12, color: '#999', marginTop: 2 },
+  promoTitle: { fontSize: 16, fontWeight: '900', color: '#FFF', marginBottom: 4 },
+  userName: { fontSize: 14, color: '#cbd5e1', fontWeight: '600' },
+  userPhone: { fontSize: 12, color: '#64748b', marginTop: 1, fontWeight: '500' },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statusText: { fontSize: 12, fontWeight: 'bold', color: '#000' },
+  statusText: { fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  label: { fontSize: 12, color: '#999' },
-  amount: { fontSize: 18, fontWeight: 'bold', color: '#4CAF50' },
-  date: { fontSize: 12, color: '#999' },
-  redeemedText: { fontSize: 11, color: '#4CAF50', marginTop: 8 },
-  empty: { alignItems: 'center', marginTop: 60 },
-  emptyText: { color: '#666', fontSize: 16, marginTop: 16 },
+  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  label: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },
+  amount: { fontSize: 17, fontWeight: '900', color: '#39ff14' },
+  date: { fontSize: 11, color: '#64748b', fontWeight: '500' },
+  redeemedRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, paddingTop: Spacing.xs, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.03)' },
+  redeemedText: { fontSize: 11, color: '#39ff14', fontWeight: '600' },
+  
+  empty: { alignItems: 'center', marginTop: 80 },
+  emptyIconBox: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.02)', justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.md },
+  emptyText: { color: '#64748b', fontSize: 15, fontWeight: '700' },
+  
   businessSelector: {
-    backgroundColor: '#1A1F3A',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2F4A',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   businessButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   businessButtonText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFD700',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#00f2fe',
   },
   businessList: {
-    marginTop: 12,
-    maxHeight: 120,
+    marginTop: 10,
+    maxHeight: 40,
   },
   businessItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#2A2F4A',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(5, 8, 15, 0.5)',
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)'
   },
   businessItemActive: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#00f2fe',
+    borderColor: '#00f2fe',
   },
   businessItemText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#999',
+    fontWeight: '700',
+    color: '#94a3b8',
   },
   businessItemTextActive: {
-    color: '#000',
+    color: '#05080f',
   },
 });

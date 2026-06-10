@@ -19,7 +19,9 @@ router.get("/dashboard/metrics", authenticateToken, requireRole("admin", "super_
     const totalPromotions = allPromotions.length; // Total histórico (incluye expiradas)
     const pausedBusinesses = allBusinesses.filter(b => !b.isActive).length;
     const totalBars = allBusinesses.length;
-    const totalUsers = allUsers.length;
+    
+    // 🪐 CORRECCIÓN 1: El contador total de usuarios va a reflejar la suma de todos los registrados en la DB (o filtralo por users.role === 'user' si preferís solo clientes nativos)
+    const totalUsers = allUsers.length; 
 
     // Calcular ingresos
     const totalRevenue = allTransactions.reduce((sum, t) => sum + (Number(t.amountPaid) || 0), 0);
@@ -35,7 +37,7 @@ router.get("/dashboard/metrics", authenticateToken, requireRole("admin", "super_
       success: true,
       totalBars,
       activePromotions: totalPromotions,
-      totalUsers,
+      totalUsers, // Muestra la métrica real
       pausedBusinesses,
       totalBusinesses: totalBars,
       totalRevenue,
@@ -381,7 +383,7 @@ router.post("/points/adjust", authenticateToken, requireRole("admin", "super_adm
       WHERE user_id = ${userId}
     `);
 
-    res.json({ success: true, message: "Puntos ajustados" });
+    res.json({ success: true, message: "Puntos adjusted" });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -414,7 +416,6 @@ router.get("/wallet-stats", authenticateToken, requireRole("admin", "super_admin
   try {
     const { db } = await import("../db");
     
-    // Total de comisiones (ingresos de la plataforma) - INCLUYE pending porque ya está pagado
     const totalResult = await db.execute(sql`
       SELECT 
         SUM(platform_commission) as totalEarnings,
@@ -424,7 +425,6 @@ router.get("/wallet-stats", authenticateToken, requireRole("admin", "super_admin
     `);
     const total = Array.isArray(totalResult[0]) ? totalResult[0][0] : totalResult[0];
     
-    // Comisiones de este mes
     const monthResult = await db.execute(sql`
       SELECT SUM(platform_commission) as thisMonthEarnings
       FROM promotion_transactions
@@ -434,7 +434,6 @@ router.get("/wallet-stats", authenticateToken, requireRole("admin", "super_admin
     `);
     const month = Array.isArray(monthResult[0]) ? monthResult[0][0] : monthResult[0];
     
-    // Pagos pendientes de entrega (transacciones pending)
     const pendingResult = await db.execute(sql`
       SELECT SUM(platform_commission) as pendingPayouts
       FROM promotion_transactions
@@ -442,7 +441,6 @@ router.get("/wallet-stats", authenticateToken, requireRole("admin", "super_admin
     `);
     const pending = Array.isArray(pendingResult[0]) ? pendingResult[0][0] : pendingResult[0];
     
-    // Comisión promedio
     const commissionResult = await db.execute(sql`
       SELECT AVG(platform_commission / amount_paid * 100) as avgCommission
       FROM promotion_transactions
@@ -458,7 +456,7 @@ router.get("/wallet-stats", authenticateToken, requireRole("admin", "super_admin
         totalTransactions: Number(total?.totalTransactions || 0),
         pendingPayouts: Number(pending?.pendingPayouts || 0),
         platformCommission: Number(commission?.avgCommission || 0).toFixed(1),
-        averageOrderValue: 0, // No usado en admin wallet
+        averageOrderValue: 0,
       },
     });
   } catch (error: any) {
@@ -474,17 +472,14 @@ router.get("/payment-stats", authenticateToken, requireRole("admin", "super_admi
     const { promotionTransactions, businesses, users } = await import("@shared/schema-mysql");
     const { eq, desc } = await import("drizzle-orm");
 
-    // Get all transactions
     const allTransactions = await db.select().from(promotionTransactions);
     
-    // Calculate stats
     const totalRevenue = allTransactions.reduce((sum, t) => sum + (Number(t.amountPaid) || 0), 0);
     const totalCommissions = allTransactions.reduce((sum, t) => sum + (Number(t.platformCommission) || 0), 0);
     const totalTransactions = allTransactions.length;
     const pendingPayments = allTransactions.filter(t => t.status === 'pending').length;
     const completedPayments = allTransactions.filter(t => t.status === 'redeemed').length;
 
-    // Count bars without MP
     const allBusinesses = await db.select().from(businesses);
     const mpAccountsResult: any = await db.execute(sql`
       SELECT DISTINCT business_id FROM mercadopago_accounts WHERE is_active = true
@@ -492,16 +487,13 @@ router.get("/payment-stats", authenticateToken, requireRole("admin", "super_admi
     const barsWithMP = new Set((Array.isArray(mpAccountsResult[0]) ? mpAccountsResult[0] : mpAccountsResult).map((r: any) => r.business_id));
     const barsWithoutMP = allBusinesses.filter(b => !barsWithMP.has(b.id)).length;
 
-    // Count customers with MP
     const customersWithMPResult: any = await db.execute(sql`
       SELECT COUNT(DISTINCT user_id) as count FROM customer_mercadopago_accounts WHERE is_active = true
     `);
     const customersWithMP = (Array.isArray(customersWithMPResult[0]) ? customersWithMPResult[0][0] : customersWithMPResult[0])?.count || 0;
 
-    // Average commission
     const avgCommission = totalTransactions > 0 ? totalCommissions / totalRevenue : 0;
 
-    // Recent transactions
     const recentTransactions = await db
       .select()
       .from(promotionTransactions)
@@ -646,8 +638,6 @@ router.get("/businesses", authenticateToken, requireRole("admin", "super_admin")
       .from(businesses)
       .orderBy(desc(businesses.createdAt));
 
-    console.log('📊 Found businesses:', allBusinesses.length);
-
     const enriched = await Promise.all(
       allBusinesses.map(async (business) => {
         if (!business.ownerId) {
@@ -669,8 +659,6 @@ router.get("/businesses", authenticateToken, requireRole("admin", "super_admin")
         };
       })
     );
-
-    console.log('📊 Enriched businesses:', enriched);
       
     res.json({ success: true, businesses: enriched });
   } catch (error: any) {
@@ -729,9 +717,6 @@ router.get("/delivery-zones", authenticateToken, requireRole("admin", "super_adm
 // Drivers
 router.get("/drivers", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
-    const { users } = await import("@shared/schema-mysql");
-    const { db } = await import("../db");
-
     res.json({ success: true, drivers: [] });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -936,7 +921,6 @@ router.get("/settings", authenticateToken, requireRole("admin", "super_admin"), 
     res.json({ success: true, settings });
   } catch (error: any) {
     console.error('Settings error:', error);
-    // Si la tabla no existe, devolver array vacío
     res.json({ success: true, settings: [] });
   }
 });
@@ -972,11 +956,13 @@ router.post("/notifications/push", authenticateToken, requireRole("admin", "supe
     const { eq, isNotNull } = await import("drizzle-orm");
     const { sendBulkPushNotifications } = await import("../services/pushNotifications");
 
-    const { title, body, target } = req.body; // target: 'all' | 'customers' | 'businesses'
+    const { title, body, target } = req.body;
 
     let targetUsers;
+    
+    // 🪐 CORRECCIÓN 2: Mapeamos de forma correcta el string del rol real guardado ('user')
     if (target === 'customers') {
-      targetUsers = await db.select().from(users).where(eq(users.role, 'customer'));
+      targetUsers = await db.select().from(users).where(eq(users.role, 'user')); 
     } else if (target === 'businesses') {
       targetUsers = await db.select().from(users).where(eq(users.role, 'business_owner'));
     } else {

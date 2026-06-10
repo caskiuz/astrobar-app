@@ -2,7 +2,8 @@ import { theme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useAppSafe, ThemeMode } from "@/contexts/AppContext";
 
-// Define light and dark themes
+// Mantenemos las definiciones por si alguna dependencia interna las mapea,
+// pero el modo claro ya queda completamente en desuso.
 const lightTheme = {
   ...theme,
   colors: {
@@ -62,26 +63,25 @@ export function useTheme() {
   const systemColorScheme = useColorScheme();
   const appContext = useAppSafe();
 
-  const themeMode: ThemeMode = appContext?.themeMode ?? "system";
+  // Mantenemos las llamadas de contexto para que React no tire errores de hooks sueltos,
+  // pero forzamos el modo visual.
+  const themeMode: ThemeMode = "dark"; 
   const setThemeMode = appContext?.setThemeMode ?? (async () => {});
 
-  const effectiveScheme =
-    themeMode === "system" ? (systemColorScheme ?? "light") : themeMode;
+  // 🪐 CANDADO CYBERPUNK: Forzado absoluto al modo oscuro
+  const isDark = true;
+  const themeData = darkTheme;
 
-  const isDark = effectiveScheme === "dark";
-  const themeData = isDark ? darkTheme : lightTheme;
-
-  // Ensure gradients always have values (critical for Android LinearGradient)
   const safeTheme = {
     ...themeData,
-    gradientStart: themeData?.gradientStart ?? (isDark ? '#000000' : '#FFFFFF'),
-    gradientEnd: themeData?.gradientEnd ?? (isDark ? '#1A1A1A' : '#F5F5F5'),
+    gradientStart: themeData?.gradientStart ?? '#000000',
+    gradientEnd: themeData?.gradientEnd ?? '#1A1A1A',
   };
 
   return {
     theme: safeTheme,
-    isDark,
-    themeMode,
-    setThemeMode,
+    isDark, // Siempre true
+    themeMode, // Siempre "dark"
+    setThemeMode, // Función dummy por compatibilidad
   };
 }
