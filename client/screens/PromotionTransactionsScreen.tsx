@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // Usamos únicamente Ionicons para evitar imports rotos
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiRequest } from '../lib/query-client';
@@ -114,7 +114,8 @@ export default function PromotionTransactionsScreen() {
 
         {item.redeemedAt && (
           <View style={styles.redeemedRow}>
-            <Feather name="check" size={12} color="#39ff14" />
+            {/* ✅ Corregido: Cambiado a Ionicons para evitar crash por falta de import */}
+            <Ionicons name="checkmark" size={12} color="#39ff14" />
             <Text style={styles.redeemedText}>
               Canjeado: {new Date(item.redeemedAt).toLocaleString('es-AR', { 
                 day: '2-digit', 

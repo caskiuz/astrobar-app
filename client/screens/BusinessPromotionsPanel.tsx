@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // Usamos únicamente Ionicons para evitar imports rotos y crashes
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -122,7 +122,7 @@ export default function BusinessPromotionsPanel() {
               
               if (result.success) {
                 loadPromotions();
-                Alert.alert('Éxito', 'Promoción deleted');
+                Alert.alert('Éxito', 'Promoción eliminada');
               } else {
                 Alert.alert('Error', result.error || 'Error al eliminar');
               }
@@ -143,7 +143,7 @@ export default function BusinessPromotionsPanel() {
 
     return (
       <View style={[styles.card, item.type === 'flash' && styles.flashCard, !item.isActive && styles.inactiveCard]}>
-        {item.image && (
+        ={item.image && (
           <Image
             source={{ uri: item.image }}
             style={styles.promoImage}
@@ -168,7 +168,7 @@ export default function BusinessPromotionsPanel() {
           <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             {!isExpired && (
               <TouchableOpacity
-                onPress={() => navigation.navigate(item.type === 'flash' ? 'CreateFlashPromotion' : 'CreateCommonPromotion', { editPromotion: item })}
+                onPress={() => navigation.navigate('CreatePromotion', { editPromotion: item, type: item.type })}
                 style={[styles.statusBtn, { backgroundColor: 'rgba(0, 242, 254, 0.15)', borderWidth: 1, borderColor: '#00f2fe' }]}
               >
                 <Ionicons name="pencil" size={14} color="#00f2fe" />
@@ -239,7 +239,7 @@ export default function BusinessPromotionsPanel() {
   if (loading) {
     return (
       <View style={[styles.center, { backgroundColor: '#05080f' }]}>
-        <Text style={styles.loadingText}>Cargando promociones...</Text>
+        <ActivityIndicator size="large" color="#00f2fe" />
       </View>
     );
   }
@@ -307,11 +307,11 @@ export default function BusinessPromotionsPanel() {
         }
       />
 
-      {/* 🪐 CÁPSULAS FLOTANTES CYBERPUNK (Rediseño de los círculos planos) */}
+      {/* 🚀 FAB CONTAINER CORREGIDO CON RUTAS REALES */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, styles.flashFab]}
-          onPress={() => navigation.navigate('CreateFlashPromotion')}
+          onPress={() => navigation.navigate('CreatePromotion', { type: 'flash' })}
         >
           <Ionicons name="flash" size={20} color="#FFF" />
           <Text style={styles.fabText}>Flash</Text>
@@ -319,7 +319,7 @@ export default function BusinessPromotionsPanel() {
         
         <TouchableOpacity
           style={[styles.fab, styles.commonFab]}
-          onPress={() => navigation.navigate('CreateCommonPromotion')}
+          onPress={() => navigation.navigate('CreatePromotion', { type: 'common' })}
         >
           <Ionicons name="calendar" size={20} color="#05080f" />
           <Text style={[styles.fabText, { color: '#05080f' }]}>Común</Text>
@@ -358,7 +358,6 @@ const getStyles = (theme: any, insets: any) => StyleSheet.create({
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#00f2fe', fontSize: 15, fontWeight: '700' },
-  
   summary: {
     flexDirection: 'row',
     paddingVertical: Spacing.md,
@@ -369,7 +368,6 @@ const getStyles = (theme: any, insets: any) => StyleSheet.create({
   summaryItem: { flex: 1, alignItems: 'center', borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   summaryValue: { fontSize: 22, fontWeight: '900', color: '#FFF' },
   summaryLabel: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontWeight: '600', textTransform: 'uppercase' },
-  
   list: { padding: Spacing.lg, paddingBottom: 100 },
   card: {
     backgroundColor: 'rgba(15, 23, 42, 0.55)',
@@ -411,13 +409,11 @@ const getStyles = (theme: any, insets: any) => StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   inactiveBtn: { backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)' },
-  
   stats: { flexDirection: 'row', marginBottom: Spacing.md, backgroundColor: 'rgba(5, 8, 15, 0.3)', padding: Spacing.sm, borderRadius: BorderRadius.md },
   stat: { flex: 1, alignItems: 'center' },
   statLabel: { fontSize: 11, color: '#94a3b8', marginBottom: 2, fontWeight: '500' },
   statValue: { fontSize: 15, fontWeight: '800', color: '#FFF' },
   lowStock: { color: '#ff4c4c' },
-  
   progressBar: {
     height: 5,
     backgroundColor: 'rgba(255,255,255,0.05)',
@@ -428,15 +424,12 @@ const getStyles = (theme: any, insets: any) => StyleSheet.create({
   lowStockBar: { backgroundColor: '#ff4c4c' },
   alertText: { fontSize: 9, color: '#ff4c4c', fontWeight: '900', marginTop: 2, textTransform: 'uppercase' },
   inactiveCard: { opacity: 0.5 },
-  
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.sm, paddingTop: Spacing.sm, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   footerText: { fontSize: 11, color: '#64748b', fontWeight: '500' },
-  
   empty: { alignItems: 'center', marginTop: 80, paddingHorizontal: Spacing.xl },
   emptyIconCore: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.md },
   emptyText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   emptySubtext: { color: '#94a3b8', fontSize: 13, marginTop: Spacing.xs, textAlign: 'center', fontWeight: '500', lineHeight: 18 },
-  
   fabContainer: {
     position: 'absolute',
     bottom: 24,
