@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+// 🪐 CORRECCIÓN: Se agrega ActivityIndicator a los componentes nativos importados
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Usamos únicamente Ionicons para evitar imports rotos y crashes
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
@@ -97,7 +98,7 @@ export default function BusinessPromotionsPanel() {
         
         if (result.success) {
           loadPromotions();
-          window.alert('Promoción eliminada exitosamente');
+          window.alert('Promoción deleted exitosamente');
         } else {
           window.alert('Error: ' + (result.error || 'Error al eliminar'));
         }
@@ -143,7 +144,7 @@ export default function BusinessPromotionsPanel() {
 
     return (
       <View style={[styles.card, item.type === 'flash' && styles.flashCard, !item.isActive && styles.inactiveCard]}>
-        ={item.image && (
+        {item.image && (
           <Image
             source={{ uri: item.image }}
             style={styles.promoImage}
