@@ -18,7 +18,7 @@ import { User, UserRole } from "@/types";
 import { ThemedText } from "@/components/ThemedText";
 import { AstroBarColors } from "@/constants/theme";
 
-// 🪐 RUTA RELATIVA REAL: Subir dos niveles exactos desde client/contexts/
+// 🪐 RUTA RELATIVA REAL
 import astrobarLogoImg from "../../assets/astrobarlogo.jpg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -32,7 +32,7 @@ interface AuthContextType {
   biometricAvailable: boolean;
   biometricType: string | null;
   requestPhoneLogin: (phone: string) => Promise<{ userNotFound?: boolean; requiresVerification?: boolean }>;
-  loginWithPassword: (identifier: string, password: string) => Promise<{ success: boolean; requiresVerification?: boolean }>;
+  loginWithPassword: (identifier: string, password: string) => Promise<{ success: boolean; requiresVerification?: boolean; user?: User }>;
   signup: (name: string, role: UserRole, phone: string, email?: string, password?: string) => Promise<{ requiresVerification: boolean }>;
   verifyPhone: (phone: string, code: string) => Promise<User>;
   resendVerification: (phone: string) => Promise<void>;
@@ -56,7 +56,6 @@ const normalizePhone = (phone: string) => {
   return `+${digits}`;
 };
 
-// 🌌 COMPONENTE INTERNO: Estrellas con parpadeo desfasado para el Splash
 function SplashStarParticle({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
   const opacity = useSharedValue(0.1);
 
@@ -97,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [biometricType, setBiometricType] = useState<string | null>(null);
   const [starList, setStarList] = useState<{ id: number; x: number; y: number; size: number; delay: number }[]>([]);
 
-  // Valores compartidos para la animación de entrada del Splash
   const logoScale = useSharedValue(0.4);
   const logoOpacity = useSharedValue(0);
   const textOpacity = useSharedValue(0);
@@ -119,7 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }));
     setStarList(generated);
 
-    // Activamos animaciones estéticas fluidas
     logoScale.value = withSpring(1, { damping: 11, stiffness: 85 });
     logoOpacity.value = withTiming(1, { duration: 700 });
     textOpacity.value = withDelay(400, withTiming(1, { duration: 700 }));
@@ -165,9 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setPendingVerificationPhone(pendingPhone);
       }
       
-      // 🔥 Delay artificial para que el Splash Screen luzca espectacular
       await new Promise((resolve) => setTimeout(resolve, 1600));
-
     } catch (error) {
       console.error("Error loading user:", error);
     } finally {
@@ -187,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { requiresVerification: true };
   };
 
-  const loginWithPassword = async (identifier: string, password: string): Promise<{ success: boolean; requiresVerification?: boolean }> => {
+  const loginWithPassword = async (identifier: string, password: string): Promise<{ success: boolean; requiresVerification?: boolean; user?: User }> => {
     const isEmail = identifier.includes('@');
     
     if (isEmail) {
@@ -210,10 +205,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
       await AsyncStorage.setItem("token", data.token);
       setUser(newUser);
-      return { success: true };
+      return { success: true, user: newUser };
     }
 
-    await requestPhoneLogin(identifier);
+    const phoneResult = await requestPhoneLogin(identifier);
     return { success: false, requiresVerification: true };
   };
 
@@ -373,7 +368,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     transform: [{ translateY: textY.value }],
   }));
 
-  // 🚀 INTERCEPCIÓN DE CARGA CON IMPORTACIÓN ESTÁTICA BLINDADA PARA METRO
   if (isLoading) {
     return (
       <View style={styles.splashContainer}>
