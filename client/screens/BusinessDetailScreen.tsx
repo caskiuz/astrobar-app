@@ -74,7 +74,8 @@ export default function BusinessDetailScreen() {
             minimumOrder: (data.business.minOrder || 5000) / 100,
             isOpen: data.business.isOpen || false,
             openingHours: [],
-            address: data.business.address || 'Autl�n, Argentina',
+            // ✅ CORRECCIÓN 1: Saneamos el string ortográfico roto por defecto
+            address: data.business.address || 'Buenos Aires, Argentina',
             phone: data.business.phone || '',
             categories: data.business.categories ? data.business.categories.split(',') : [],
             acceptsCash: true,
@@ -310,7 +311,7 @@ export default function BusinessDetailScreen() {
                 ]}
               >
                 <Feather name="zap" size={20} color="#000000" />
-                <ThemedText type="body" style={[styles.menuButtonText, { color: '#000000' }]}>
+                <ThemedText style={[styles.menuButtonText, { color: '#000000' }]}>
                   Ver Promociones
                 </ThemedText>
                 <Feather name="chevron-right" size={20} color="#000000" />
@@ -328,7 +329,7 @@ export default function BusinessDetailScreen() {
                 ]}
               >
                 <Feather name="book-open" size={20} color="#FFFFFF" />
-                <ThemedText type="body" style={styles.menuButtonText}>
+                <ThemedText style={styles.menuButtonText}>
                   Ver Menú Completo
                 </ThemedText>
                 <Feather name="chevron-right" size={20} color="#FFFFFF" />
@@ -462,21 +463,23 @@ const getStyles = (theme: any) => StyleSheet.create({
   productsSectionTitle: {
     marginBottom: Spacing.md,
   },
+  // ✅ CORRECCIÓN 2: Reestructuración simétrica y balanceada para botones de alta gama
   menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    height: 56, // Forzamos altura estricta para el centrado vertical nativo
     borderRadius: BorderRadius.xl,
-    gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
   },
   menuButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800', // Un toque más de peso visual a la tipografía
+    fontSize: 15,
     flex: 1,
     textAlign: 'center',
+    includeFontPadding: false, // Remueve el padding fantasma superior de Android 🚀
+    textAlignVertical: 'center',
   },
   actionButtonsContainer: {
     marginHorizontal: Spacing.lg,
@@ -573,7 +576,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     right: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: AstroBarColors.primary,
     paddingHorizontal: Spacing.xs,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
