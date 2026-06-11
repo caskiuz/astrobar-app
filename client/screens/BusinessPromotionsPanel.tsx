@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// 🪐 CORRECCIÓN: Se agrega ActivityIndicator a los componentes nativos importados
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Usamos únicamente Ionicons para evitar imports rotos y crashes
+import { Ionicons } from '@expo/vector-icons'; 
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -53,7 +52,7 @@ export default function BusinessPromotionsPanel() {
 
   useEffect(() => {
     loadPromotions();
-    const interval = setInterval(loadPromotions, 30000); // Refresh every 30s
+    const interval = setInterval(loadPromotions, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -98,7 +97,7 @@ export default function BusinessPromotionsPanel() {
         
         if (result.success) {
           loadPromotions();
-          window.alert('Promoción deleted exitosamente');
+          window.alert('Promoción eliminada exitosamente');
         } else {
           window.alert('Error: ' + (result.error || 'Error al eliminar'));
         }
@@ -169,7 +168,8 @@ export default function BusinessPromotionsPanel() {
           <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             {!isExpired && (
               <TouchableOpacity
-                onPress={() => navigation.navigate('CreatePromotion', { editPromotion: item, type: item.type })}
+                /* 🪐 CORRECCIÓN 1: Redirección de edición adaptada a los Stacks reales */
+                onPress={() => navigation.navigate(item.type === 'flash' ? 'CreateFlashPromotion' : 'CreateCommonPromotion', { editPromotion: item })}
                 style={[styles.statusBtn, { backgroundColor: 'rgba(0, 242, 254, 0.15)', borderWidth: 1, borderColor: '#00f2fe' }]}
               >
                 <Ionicons name="pencil" size={14} color="#00f2fe" />
@@ -308,11 +308,12 @@ export default function BusinessPromotionsPanel() {
         }
       />
 
-      {/* 🚀 FAB CONTAINER CORREGIDO CON RUTAS REALES */}
+      {/* 🚀 FAB CONTAINER CORREGIDO CON RUTAS REALES DEL NAVIGATOR */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, styles.flashFab]}
-          onPress={() => navigation.navigate('CreatePromotion', { type: 'flash' })}
+          /* 🪐 CORRECCIÓN 2: Ruta real para el formulario de ofertas Flash */
+          onPress={() => navigation.navigate('CreateFlashPromotion')}
         >
           <Ionicons name="flash" size={20} color="#FFF" />
           <Text style={styles.fabText}>Flash</Text>
@@ -320,7 +321,8 @@ export default function BusinessPromotionsPanel() {
         
         <TouchableOpacity
           style={[styles.fab, styles.commonFab]}
-          onPress={() => navigation.navigate('CreatePromotion', { type: 'common' })}
+          /* 🪐 CORRECCIÓN 3: Ruta real para el formulario de ofertas Comunes */
+          onPress={() => navigation.navigate('CreateCommonPromotion')}
         >
           <Ionicons name="calendar" size={20} color="#05080f" />
           <Text style={[styles.fabText, { color: '#05080f' }]}>Común</Text>
