@@ -33,7 +33,6 @@ type CreateFlashPromotionRouteProp = RouteProp<RootStackParamList, "CreateFlashP
 export default function CreateFlashPromotionScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const styles = getStyles();
   const navigation = useNavigation<any>();
   const route = useRoute<CreateFlashPromotionRouteProp>();
   
