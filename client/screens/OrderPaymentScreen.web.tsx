@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator, Alert, TouchableOpacity, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
-import { Spacing, BorderRadius, AstroBarColors, Shadows } from '@/constants/theme';
+import { Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { apiRequest } from '@/lib/query-client';
 
 export default function OrderPaymentScreen() {
@@ -17,33 +17,33 @@ export default function OrderPaymentScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  // Recibimos los datos del pedido (si no vienen, hardcodeamos para la prueba los $63.250 de tu captura)
+  // Levantamos el monto dinámico (si no viene, usa los $63.250 de tu pantalla)
   const totalAmount = route.params?.totalAmount || 63250;
   const businessId = route.params?.businessId || "bar_test_id";
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleProcessPayment = async () => {
+  const handleInitCheckout = async () => {
     setIsProcessing(true);
     try {
-      // 🪐 LLAMADA CORRECTA DE CLIENTE: Generamos la preferencia de cobro común
+      // 🪐 Flujo de Cliente Común: Generamos la preferencia nativa en el servidor
       const response = await apiRequest('POST', '/api/payments/checkout', {
         amount: totalAmount,
         businessId: businessId,
-        description: "Consumo AstroBar"
+        description: "Compra en AstroBar"
       });
 
       const data = await response.json();
 
       if (data.success && data.initPoint) {
-        // Redirigimos al WebView nativo con la pasarela de Mercado Pago común (Tarjetas, Dinero en cuenta, etc.)
+        // Se abre la pasarela tradicional de tarjetas mediante WebView sin pedir vinculación previa
         navigation.navigate('MercadoPagoWebView', { url: data.initPoint });
       } else {
-        Alert.alert("Error", data.error || "No se pudo generar la pasarela de pago.");
+        Alert.alert("Error", data.error || "No se pudo iniciar el pago.");
       }
     } catch (error: any) {
-      console.error("Payment error:", error);
-      Alert.alert("Error de Conexión", "Hubo un problema al conectar con Mercado Pago.");
+      console.error("Checkout error:", error);
+      Alert.alert("Error", "Problema al conectar con la pasarela de pagos.");
     } finally {
       setIsProcessing(false);
     }
@@ -51,37 +51,41 @@ export default function OrderPaymentScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#05080f' }]}>
-      {/* HEADER BAR */}
+      {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color="#FFF" />
         </Pressable>
         <ThemedText type="h2" style={{ marginLeft: Spacing.md, color: '#FFF', fontWeight: '900' }}>
-          Pagar Pedido
+          Confirmar Pago
         </ThemedText>
       </View>
 
-      {/* TICKET DE RESUMEN NEÓN */}
+      {/* DETALLE DEL PAGO */}
       <View style={styles.content}>
         <View style={styles.ticketCard}>
-          <Feather name="credit-card" size={40} color="#00f2fe" style={{ marginBottom: Spacing.md }} />
-          <ThemedText type="body" style={{ color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 }}>
-            Total a Transferir
-          </ThemedText>
-          <ThemedText type="h1" style={styles.amountText}>
-            ${totalAmount.toLocaleString('es-AR')}
-          </ThemedText>
-          <ThemedText type="body" style={{ color: '#64748b', marginTop: Spacing.xs, textAlign: 'center' }}>
-            La transacción se procesará de forma segura mediante la pasarela oficial de Mercado Pago.
-          </ThemedText>
+          <ThemedText type="body" style={styles.ticketLabel}>Resumen del pedido</ThemedText>
+          <ThemedText type="body" style={{ color: '#cbd5e1', marginTop: 4 }}>1 producto</ThemedText>
+          
+          <View style={styles.divider} />
+
+          <Text style={styles.totalLabel}>Total a pagar</Text>
+          <Text style={styles.totalAmount}>${totalAmount.toLocaleString('es-AR')}.00</Text>
+        </View>
+
+        <View style={styles.infoBox}>
+          <Feather name="shield" size={20} color="#00f2fe" style={{ marginRight: 10 }} />
+          <Text style={styles.infoText}>
+            Tu pago está protegido. No necesitas vincular tu cuenta personal.
+          </Text>
         </View>
       </View>
 
-      {/* BOTÓN DE ACCIÓN CYBERPUNK DE INICIO DE COBRO */}
+      {/* BOTÓN DEFINITIVO CYBERPUNK SIN VINCULACIONES EXTRAÑAS */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.lg) }]}>
         <TouchableOpacity
           disabled={isProcessing}
-          onPress={handleProcessPayment}
+          onPress={handleInitCheckout}
           style={styles.payButtonContainer}
         >
           <LinearGradient
@@ -94,7 +98,7 @@ export default function OrderPaymentScreen() {
               <ActivityIndicator size="small" color="#05080f" />
             ) : (
               <View style={styles.buttonInner}>
-                <Feather name="shield" size={18} color="#05080f" style={{ marginRight: 8 }} />
+                <Feather name="credit-card" size={18} color="#05080f" style={{ marginRight: 8 }} />
                 <Text style={styles.buttonText}>PAGAR CON MERCADO PAGO</Text>
               </View>
             )}
@@ -105,18 +109,13 @@ export default function OrderPaymentScreen() {
   );
 }
 
-// 🪐 ESTILOS PREMIUM TOTALMENTE EDITADOS EN LÍNEA CON EL TEMA DE ASTROBAR
 const getStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   backButton: {
     width: 40,
@@ -128,51 +127,40 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: Spacing.xl,
+    justifyContent: 'center',
   },
   ticketCard: {
-    width: '100%',
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
-    borderRadius: BorderRadius.xl,
+    backgroundColor: '#111726',
+    borderRadius: BorderRadius.lg,
     padding: Spacing.xl,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     ...Shadows.md,
   },
-  amountText: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: '#39ff14',
-    marginVertical: Spacing.sm,
-  },
-  footer: {
-    paddingHorizontal: Spacing.xl,
-  },
-  payButtonContainer: {
-    width: '100%',
-    height: 52,
-    borderRadius: BorderRadius.full,
-    overflow: 'hidden',
-    ...Shadows.md,
-    shadowColor: '#00f2fe',
-    shadowOpacity: 0.3,
-  },
-  gradientButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonInner: {
+  ticketLabel: { color: '#64748b', fontWeight: '600', textTransform: 'uppercase', fontSize: 12 },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: Spacing.lg },
+  totalLabel: { color: '#94a3b8', fontSize: 15, fontWeight: '500' },
+  totalAmount: { color: '#00f2fe', fontSize: 32, fontWeight: '900', marginTop: 6 },
+  infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 242, 254, 0.06)',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 242, 254, 0.15)',
   },
-  buttonText: {
-    color: '#05080f',
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: 0.5,
+  infoText: { color: '#cbd5e1', fontSize: 13, flex: 1, lineHeight: 18, fontWeight: '500' },
+  footer: { paddingHorizontal: Spacing.xl },
+  payButtonContainer: {
+    width: '100%',
+    height: 50,
+    borderRadius: BorderRadius.full,
+    overflow: 'hidden',
   },
+  gradientButton: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  buttonInner: { flexDirection: 'row', alignItems: 'center' },
+  buttonText: { color: '#05080f', fontSize: 13, fontWeight: '900', letterSpacing: 0.3 },
 });
