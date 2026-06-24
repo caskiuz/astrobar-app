@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Pressable, Alert, ActivityIndicator, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -18,83 +18,26 @@ export default function PaymentScreen() {
   const styles = getStyles(theme);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  
+  // Parámetros de la promoción seleccionada por el cliente
   const { userPromotionId, amount, promoName } = route.params;
 
   const [loading, setLoading] = useState(false);
-  const [checkingMP, setCheckingMP] = useState(true);
-  const [mpConnected, setMpConnected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [webViewUrl, setWebViewUrl] = useState('');
 
-  useEffect(() => {
-    checkMercadoPagoStatus();
-  }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      checkMercadoPagoStatus();
-    }, [])
-  );
-
-  const checkMercadoPagoStatus = async () => {
-    setCheckingMP(true);
-    try {
-      const response = await apiRequest("GET", "/api/customer-mp/status");
-      const data = await response.json();
-      setMpConnected(data.success && data.connected);
-    } catch (error) {
-      console.error("Error checking MP status:", error);
-      setMpConnected(false);
-    } finally {
-      setCheckingMP(false);
-    }
-  };
-
-  const handleConnectMercadoPago = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setConnecting(true);
-    try {
-      const response = await apiRequest("GET", "/api/customer-mp/connect");
-      const data = await response.json();
-      
-      if (data.success && data.authUrl) {
-        setWebViewUrl(data.authUrl);
-        setShowWebView(true);
-      } else {
-        Alert.alert("Error", "No se pudo conectar con Mercado Pago");
-      }
-    } catch (error: any) {
-      console.error("Error connecting MP:", error);
-      Alert.alert("Error", error.message || "No se pudo conectar");
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  const handleWebViewNavigationStateChange = (navState: any) => {
-    const { url } = navState;
-    
-    if (url.includes('/api/customer-mp/callback') || url.includes('success') || url.includes('code=')) {
-      setShowWebView(false);
-      setWebViewUrl('');
-      
-      setTimeout(() => {
-        checkMercadoPagoStatus();
-      }, 500);
-    }
-  };
-
   const handlePayment = async () => {
     setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
+      // 🪐 Generamos la preferencia de cobro directo para el cliente
       const response = await apiRequest("POST", "/api/customer-payment/create-payment", { 
         transactionId: userPromotionId 
       });
       const data = await response.json();
       
       if (!data.success) {
-        throw new Error(data.error || "Error al crear pago");
+        throw new Error(data.error || "Error al crear la pasarela de pago");
       }
       
       if (data.initPoint) {
@@ -104,6 +47,7 @@ export default function PaymentScreen() {
     } catch (error: any) {
       console.error("Payment error:", error);
       Alert.alert("Error", error.message || "No se pudo procesar el pago");
+    } finally {
       setLoading(false);
     }
   };
@@ -111,7 +55,8 @@ export default function PaymentScreen() {
   const handlePaymentWebViewNavigationStateChange = (navState: any) => {
     const { url } = navState;
     
-    if (url.includes('astrobar://payment-success')) {
+    // Control de redirecciones de éxito/falla nativas de AstroBar
+    if (url.includes('astrobar://payment-success') || url.includes('success')) {
       setShowWebView(false);
       setWebViewUrl('');
       setLoading(false);
@@ -120,7 +65,7 @@ export default function PaymentScreen() {
       Alert.alert("¡Pago exitoso!", "Tu promoción está lista", [
         { text: "Ver QR", onPress: () => navigation.replace("PromotionQR", { transactionId: userPromotionId }) }
       ]);
-    } else if (url.includes('astrobar://payment-failure')) {
+    } else if (url.includes('astrobar://payment-failure') || url.includes('failure')) {
       setShowWebView(false);
       setWebViewUrl('');
       setLoading(false);
@@ -136,154 +81,64 @@ export default function PaymentScreen() {
     }
   };
 
-  if (checkingMP) {
-    return (
-      <LinearGradient
-        colors={[theme.gradientStart || '#000000', theme.gradientEnd || '#1A1A1A']}
-        style={styles.container}
-      >
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={AstroBarColors.primary} />
-          <ThemedText type="body" style={{ marginTop: Spacing.md, color: theme.textSecondary }}>
-            Verificando método de pago...
-          </ThemedText>
-        </View>
-      </LinearGradient>
-    );
-  }
-
   return (
     <LinearGradient
-      colors={[theme.gradientStart || '#000000', theme.gradientEnd || '#1A1A1A']}
+      colors={[theme.gradientStart || '#05080f', theme.gradientEnd || '#0b111e']}
       style={styles.container}
     >
       <View style={[styles.content, { paddingTop: insets.top + Spacing.lg }]}>
+        {/* BOTÓN VOLVER */}
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={theme.text} />
         </Pressable>
 
-        <ThemedText type="h2" style={{ marginTop: Spacing.xl, marginBottom: Spacing.md }}>
-          {mpConnected ? "Confirmar Pago" : "Vincula tu Cuenta"}
+        <ThemedText type="h2" style={{ marginTop: Spacing.xl, marginBottom: Spacing.md, color: '#FFF', fontWeight: '900' }}>
+          Confirmar Pago
         </ThemedText>
 
-        <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <ThemedText type="small" style={{ color: theme.textSecondary }}>Promoción</ThemedText>
-          <ThemedText type="h3" style={{ marginTop: Spacing.xs }}>{promoName}</ThemedText>
+        {/* RESUMEN DE COMPRA */}
+        <View style={[styles.card, { backgroundColor: '#111726', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }]}>
+          <ThemedText type="small" style={{ color: theme.textSecondary, textTransform: 'uppercase', fontWeight: '700' }}>Insumo / Promoción</ThemedText>
+          <ThemedText type="h3" style={{ marginTop: Spacing.xs, color: '#FFF' }}>{promoName}</ThemedText>
 
           <View style={styles.divider} />
 
           <View style={styles.row}>
-            <ThemedText type="body">Total</ThemedText>
-            <ThemedText type="h2" style={{ color: "#FFD700" }}>
+            <ThemedText type="body" style={{ color: '#cbd5e1', fontWeight: '500' }}>Total a Transferir</ThemedText>
+            <ThemedText type="h2" style={{ color: "#39ff14", fontWeight: '900' }}>
               ${amount}
             </ThemedText>
           </View>
         </View>
 
-        {!mpConnected ? (
-          <>
-            <View style={[styles.warningCard, { backgroundColor: AstroBarColors.warningLight }]}>
-              <Feather name="alert-circle" size={24} color={AstroBarColors.warning} />
-              <View style={{ flex: 1, marginLeft: Spacing.md }}>
-                <ThemedText type="body" style={{ color: AstroBarColors.warning, fontWeight: '600' }}>
-                  Cuenta no vinculada
-                </ThemedText>
-                <ThemedText type="small" style={{ color: AstroBarColors.warning, marginTop: Spacing.xs }}>
-                  Necesitas conectar tu cuenta de Mercado Pago para pagar
-                </ThemedText>
-              </View>
-            </View>
+        {/* INFO BOX SEGURA */}
+        <View style={[styles.infoCard, { backgroundColor: "rgba(0, 242, 254, 0.06)", borderWidth: 1, borderColor: "rgba(0, 242, 254, 0.15)" }]}>
+          <Feather name="shield" size={20} color="#00f2fe" />
+          <ThemedText type="small" style={{ marginLeft: Spacing.sm, flex: 1, color: '#cbd5e1', lineHeight: 18 }}>
+            Tu transacción está protegida por Mercado Pago. Puedes abonar con tarjeta de crédito, débito o dinero en cuenta sin vincular tu perfil.
+          </ThemedText>
+        </View>
 
-            <View style={[styles.stepsCard, { backgroundColor: theme.card }, Shadows.sm]}>
-              <ThemedText type="h4" style={{ marginBottom: Spacing.md }}>¿Cómo funciona?</ThemedText>
-              
-              <View style={styles.stepRow}>
-                <View style={[styles.stepNumber, { backgroundColor: AstroBarColors.primaryLight }]}>
-                  <ThemedText type="small" style={{ color: AstroBarColors.primary, fontWeight: '600' }}>1</ThemedText>
-                </View>
-                <ThemedText type="small" style={{ flex: 1, color: theme.textSecondary }}>
-                  Conecta tu cuenta de Mercado Pago
-                </ThemedText>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={[styles.stepNumber, { backgroundColor: AstroBarColors.successLight }]}>
-                  <ThemedText type="small" style={{ color: AstroBarColors.success, fontWeight: '600' }}>2</ThemedText>
-                </View>
-                <ThemedText type="small" style={{ flex: 1, color: theme.textSecondary }}>
-                  Autoriza el pago de forma segura
-                </ThemedText>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={[styles.stepNumber, { backgroundColor: AstroBarColors.infoLight }]}>
-                  <ThemedText type="small" style={{ color: AstroBarColors.info, fontWeight: '600' }}>3</ThemedText>
-                </View>
-                <ThemedText type="small" style={{ flex: 1, color: theme.textSecondary }}>
-                  Recibe tu código QR al instante
-                </ThemedText>
-              </View>
-            </View>
-
-            <Pressable
-              onPress={handleConnectMercadoPago}
-              disabled={connecting}
-              style={[styles.connectButton, { backgroundColor: AstroBarColors.primary, opacity: connecting ? 0.6 : 1 }]}
-            >
-              {connecting ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <>
-                  <Feather name="link" size={20} color="#FFF" style={{ marginRight: Spacing.sm }} />
-                  <ThemedText style={{ color: "#FFF", fontWeight: "600" }}>
-                    Conectar Mercado Pago
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-          </>
-        ) : (
-          <>
-            <View style={[styles.successCard, { backgroundColor: AstroBarColors.successLight }]}>
-              <Feather name="check-circle" size={24} color={AstroBarColors.success} />
-              <View style={{ flex: 1, marginLeft: Spacing.md }}>
-                <ThemedText type="body" style={{ color: AstroBarColors.success, fontWeight: '600' }}>
-                  ✅ Cuenta Conectada
-                </ThemedText>
-                <ThemedText type="small" style={{ color: AstroBarColors.success, marginTop: Spacing.xs }}>
-                  Listo para pagar con Mercado Pago
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={[styles.infoCard, { backgroundColor: theme.card + "80" }]}>
-              <Feather name="info" size={20} color={AstroBarColors.info} />
-              <ThemedText type="small" style={{ marginLeft: Spacing.sm, flex: 1, color: theme.textSecondary }}>
-                Tienes 60 segundos para cancelar después de confirmar
+        {/* BOTÓN DIRECTO DE COMPRA */}
+        <Pressable
+          onPress={handlePayment}
+          disabled={loading}
+          style={[styles.payButton, { backgroundColor: '#00f2fe', opacity: loading ? 0.6 : 1, marginTop: 'auto', marginBottom: Math.max(insets.bottom, Spacing.xl) }]}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#05080f" />
+          ) : (
+            <>
+              <Feather name="credit-card" size={20} color="#05080f" style={{ marginRight: Spacing.sm }} />
+              <ThemedText style={{ color: "#05080f", fontWeight: "900" }}>
+                PAGAR ${amount}
               </ThemedText>
-            </View>
-
-            <Pressable
-              onPress={handlePayment}
-              disabled={loading}
-              style={[styles.payButton, { backgroundColor: AstroBarColors.primary, opacity: loading ? 0.6 : 1 }]}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <>
-                  <Feather name="credit-card" size={20} color="#FFF" style={{ marginRight: Spacing.sm }} />
-                  <ThemedText style={{ color: "#FFF", fontWeight: "600" }}>
-                    Pagar ${amount}
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-          </>
-        )}
+            </>
+          )}
+        </Pressable>
       </View>
 
-      {/* WebView Modal para Checkout Pro */}
+      {/* WEBVIEW PASARELA INTEGRADA DE MERCADO PAGO */}
       <Modal
         visible={showWebView}
         animationType="slide"
@@ -293,11 +148,11 @@ export default function PaymentScreen() {
           setLoading(false);
         }}
       >
-        <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.backgroundRoot }}>
-          <View style={[styles.webViewHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-            <ThemedText type="h4">Pagar con Mercado Pago</ThemedText>
+        <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: '#05080f' }}>
+          <View style={[styles.webViewHeader, { backgroundColor: '#111726', borderBottomColor: 'rgba(255,255,255,0.08)' }]}>
+            <ThemedText type="h4" style={{ color: '#FFF', fontWeight: '800' }}>Checkout Seguro</ThemedText>
             <Pressable
-              style={[styles.closeWebViewButton, { backgroundColor: theme.backgroundSecondary }]}
+              style={[styles.closeWebViewButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
               onPress={() => {
                 setShowWebView(false);
                 setWebViewUrl('');
@@ -305,7 +160,7 @@ export default function PaymentScreen() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
             >
-              <Feather name="x" size={24} color={theme.text} />
+              <Feather name="x" size={24} color="#FFF" />
             </Pressable>
           </View>
           {webViewUrl ? (
@@ -315,9 +170,9 @@ export default function PaymentScreen() {
               startInLoadingState
               renderLoading={() => (
                 <View style={styles.webViewLoading}>
-                  <ActivityIndicator size="large" color={AstroBarColors.primary} />
-                  <ThemedText type="body" style={{ marginTop: Spacing.md, color: theme.textSecondary }}>
-                    Cargando Mercado Pago...
+                  <ActivityIndicator size="large" color="#00f2fe" />
+                  <ThemedText type="body" style={{ marginTop: Spacing.md, color: '#94a3b8' }}>
+                    Abriendo pasarela de cobro...
                   </ThemedText>
                 </View>
               )}
@@ -331,12 +186,6 @@ export default function PaymentScreen() {
 
 const getStyles = (theme: any) => StyleSheet.create({
   container: { flex: 1 },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
   content: { flex: 1, paddingHorizontal: Spacing.lg },
   backButton: { marginBottom: Spacing.md },
   card: {
@@ -346,45 +195,13 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#333",
+    backgroundColor: "rgba(255,255,255,0.08)",
     marginVertical: Spacing.lg,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  warningCard: {
-    flexDirection: 'row',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
-    alignItems: 'flex-start',
-  },
-  successCard: {
-    flexDirection: 'row',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
-    alignItems: 'flex-start',
-  },
-  stepsCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
   },
   infoCard: {
     flexDirection: "row",
@@ -393,19 +210,14 @@ const getStyles = (theme: any) => StyleSheet.create({
     marginBottom: Spacing.xl,
     alignItems: 'flex-start',
   },
-  connectButton: {
-    flexDirection: "row",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   payButton: {
     flexDirection: "row",
     padding: Spacing.lg,
     borderRadius: BorderRadius.full,
     alignItems: "center",
     justifyContent: "center",
+    ...Shadows.md,
+    shadowColor: "#00f2fe",
   },
   webViewHeader: {
     flexDirection: 'row',
@@ -429,6 +241,6 @@ const getStyles = (theme: any) => StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#05080f',
   },
 });
