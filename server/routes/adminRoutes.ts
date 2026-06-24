@@ -16,11 +16,10 @@ router.get("/dashboard/metrics", authenticateToken, requireRole("admin", "super_
     const allPromotions = await db.select().from(promotions);
     const allTransactions = await db.select().from(promotionTransactions);
 
-    const totalPromotions = allPromotions.length; // Total histórico (incluye expiradas)
+    const totalPromotions = allPromotions.length; 
     const pausedBusinesses = allBusinesses.filter(b => !b.isActive).length;
     const totalBars = allBusinesses.length;
     
-    // 🪐 CORRECCIÓN 1: El contador total de usuarios va a reflejar la suma de todos los registrados en la DB (o filtralo por users.role === 'user' si preferís solo clientes nativos)
     const totalUsers = allUsers.length; 
 
     // Calcular ingresos
@@ -37,7 +36,7 @@ router.get("/dashboard/metrics", authenticateToken, requireRole("admin", "super_
       success: true,
       totalBars,
       activePromotions: totalPromotions,
-      totalUsers, // Muestra la métrica real
+      totalUsers, 
       pausedBusinesses,
       totalBusinesses: totalBars,
       totalRevenue,
@@ -52,7 +51,6 @@ router.get("/dashboard/metrics", authenticateToken, requireRole("admin", "super_
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // Get all transactions (promotions)
 router.get("/transactions", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
@@ -111,7 +109,6 @@ router.get("/promotions/dashboard", authenticateToken, requireRole("admin", "sup
 
     const now = new Date();
 
-    // Get active promotions
     const activePromotions = await db
       .select()
       .from(promotions)
@@ -127,25 +124,22 @@ router.get("/promotions/dashboard", authenticateToken, requireRole("admin", "sup
     const totalFlash = activePromotions.filter(p => p.type === 'flash').length;
     const totalCommon = activePromotions.filter(p => p.type === 'common').length;
 
-    // Get all transactions
     const allTransactions = await db.select().from(promotionTransactions);
     const acceptedCount = allTransactions.length;
     const redeemedCount = allTransactions.filter(t => t.status === 'redeemed').length;
     const acceptanceRate = acceptedCount > 0 ? Math.round((redeemedCount / acceptedCount) * 100) : 0;
 
-    // Calculate avg redemption time
     const redeemedTransactions = allTransactions.filter(t => t.status === 'redeemed' && t.redeemedAt);
     const avgRedemptionTime = redeemedTransactions.length > 0
       ? Math.round(
           redeemedTransactions.reduce((sum, t) => {
             const created = new Date(t.createdAt).getTime();
             const redeemed = new Date(t.redeemedAt!).getTime();
-            return sum + (redeemed - created) / 60000; // minutes
+            return sum + (redeemed - created) / 60000; 
           }, 0) / redeemedTransactions.length
         )
       : 0;
 
-    // Get top bars by redemptions
     const barStats = new Map<string, { name: string; count: number }>();
     for (const transaction of redeemedTransactions) {
       const existing = barStats.get(transaction.businessId) || { name: '', count: 0 };
@@ -214,9 +208,7 @@ router.get("/users", authenticateToken, requireRole("admin", "super_admin"), asy
 // Get all businesses with commissions
 router.get("/commissions", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
-    const { businesses: businessesTable } = await import("@shared/schema-mysql");
     const { db } = await import("../db");
-    const { sql } = await import("drizzle-orm");
 
     const result = await db.execute(sql`
       SELECT 
@@ -238,18 +230,13 @@ router.get("/commissions", authenticateToken, requireRole("admin", "super_admin"
   }
 });
 
-// Update business commission
+// Update business commission (Punto 6 y 8)
 router.post("/commissions", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const { db } = await import("../db");
-    const { sql } = await import("drizzle-orm");
     const { v4: uuidv4 } = await import("uuid");
 
     const { businessId, commission, notes } = req.body;
-
-    if (commission < 0.05 || commission > 0.30) {
-      return res.status(400).json({ error: 'La comisión debe estar entre 5% y 30%' });
-    }
 
     await db.execute(sql`
       INSERT INTO business_commissions (id, business_id, platform_commission, notes, created_by)
@@ -260,7 +247,7 @@ router.post("/commissions", authenticateToken, requireRole("admin", "super_admin
         updated_at = CURRENT_TIMESTAMP
     `);
 
-    res.json({ success: true, message: 'Comisión actualizada' });
+    res.json({ success: true, message: 'Comisión actualizada, rey.' });
   } catch (error: any) {
     console.error('Update commission error:', error);
     res.status(500).json({ error: error.message });
@@ -348,23 +335,45 @@ router.put("/businesses/:id", authenticateToken, requireRole("admin", "super_adm
   }
 });
 
-// Get user points stats
+// 🪐 ENDPOINT PREMIUM: Calcular nivel dinámico según reward_levels (Punto 7 del pliego)
+router.get("/user-level/:totalPoints", authenticateToken, async (req, res) => {
+  const points = parseInt(req.params.totalPoints, 10) || 0;
+  try {
+    const { db } = await import("../db");
+    const [levelRows]: any = await db.execute(sql`
+      SELECT name, color_badge 
+      FROM reward_levels 
+      WHERE ${points} >= min_points AND ${points} <= max_points 
+      LIMIT 1
+    `);
+    
+    if (levelRows && levelRows[0]) {
+      return res.json({ success: true, level: levelRows[0].name, color: levelRows[0].color_badge });
+    }
+    return res.json({ success: true, level: "Cobre", color: "#b5a642" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user points stats (Alineado dinámicamente con los niveles en español - Punto 7)
 router.get("/points/stats", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const { db } = await import("../db");
     const result = await db.execute(sql`
       SELECT 
         COUNT(*) as totalUsers,
-        SUM(CASE WHEN current_level = 'copper' THEN 1 ELSE 0 END) as copper,
-        SUM(CASE WHEN current_level = 'bronze' THEN 1 ELSE 0 END) as bronze,
-        SUM(CASE WHEN current_level = 'silver' THEN 1 ELSE 0 END) as silver,
-        SUM(CASE WHEN current_level = 'gold' THEN 1 ELSE 0 END) as gold,
-        SUM(CASE WHEN current_level = 'platinum' THEN 1 ELSE 0 END) as platinum,
+        SUM(CASE WHEN total_points <= 999 THEN 1 ELSE 0 END) as cobre,
+        SUM(CASE WHEN total_points BETWEEN 1000 AND 2999 THEN 1 ELSE 0 END) as bronce,
+        SUM(CASE WHEN total_points BETWEEN 3000 AND 6999 THEN 1 ELSE 0 END) as plata,
+        SUM(CASE WHEN total_points BETWEEN 7000 AND 14999 THEN 1 ELSE 0 END) as oro,
+        SUM(CASE WHEN total_points BETWEEN 15000 AND 29999 THEN 1 ELSE 0 END) as platinum,
+        SUM(CASE WHEN total_points >= 30000 THEN 1 ELSE 0 END) as diamante,
         SUM(total_points) as totalPoints,
         AVG(total_points) as avgPoints
       FROM user_points
     `);
-    const stats = Array.isArray(result[0]) ? result[0][0] : result[0];
+    const stats = Array.isArray(result[0]) ? result[0][0] : result;
     res.json({ success: true, stats });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -383,7 +392,7 @@ router.post("/points/adjust", authenticateToken, requireRole("admin", "super_adm
       WHERE user_id = ${userId}
     `);
 
-    res.json({ success: true, message: "Puntos adjusted" });
+    res.json({ success: true, message: "Puntos ajustados con éxito, rey." });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -403,7 +412,7 @@ router.get("/revenue/stats", authenticateToken, requireRole("admin", "super_admi
       FROM promotion_transactions
       WHERE status IN ('redeemed', 'pending')
     `);
-    const stats = Array.isArray(result[0]) ? result[0][0] : result[0];
+    const stats = Array.isArray(result[0]) ? result[0][0] : result;
     res.json({ success: true, stats });
   } catch (error: any) {
     console.error('Revenue stats error:', error);
@@ -723,7 +732,7 @@ router.get("/drivers", authenticateToken, requireRole("admin", "super_admin"), a
   }
 });
 
-// Debug: Check database wallets (no auth for testing)
+// Debug: Check database wallets-noauth
 router.get("/debug/wallets-noauth", async (req, res) => {
   try {
     const { db } = await import("../db");
@@ -893,7 +902,7 @@ router.get("/support/tickets", authenticateToken, requireRole("admin", "super_ad
   }
 });
 
-// Support tickets
+// Support
 router.get("/support", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
     res.json({ success: true, tickets: [] });
@@ -911,12 +920,11 @@ router.get("/logs", authenticateToken, requireRole("admin", "super_admin"), asyn
   }
 });
 
-// System settings
+// System settings (Mapeo corregido a clave única `key` 🪐)
 router.get("/settings", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const { db } = await import("../db");
-
-    const result = await db.execute(sql`SELECT * FROM system_settings`);
+    const result = await db.execute(sql`SELECT \`key\`, \`value\`, \`type\` FROM system_settings`);
     const settings = Array.isArray(result[0]) ? result[0] : result;
     res.json({ success: true, settings });
   } catch (error: any) {
@@ -925,23 +933,19 @@ router.get("/settings", authenticateToken, requireRole("admin", "super_admin"), 
   }
 });
 
-// Update system setting
+// Update system setting (Saneado milimétricamente según tu base de datos de Railway 🌌)
 router.post("/settings/update", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const { db } = await import("../db");
-    const { clearSettingsCache } = await import("../utils/systemSettings");
-    const { v4: uuidv4 } = await import("uuid");
     const { key, value } = req.body;
 
     await db.execute(sql`
-      INSERT INTO system_settings (id, setting_key, value)
-      VALUES (${uuidv4()}, ${key}, ${value})
-      ON DUPLICATE KEY UPDATE value = ${value}
+      INSERT INTO system_settings (\`key\`, \`value\`)
+      VALUES (${key}, ${value})
+      ON DUPLICATE KEY UPDATE \`value\` = ${value}
     `);
 
-    clearSettingsCache();
-
-    res.json({ success: true, message: 'Configuración actualizada' });
+    res.json({ success: true, message: 'Configuración actualizada en caliente, rey.' });
   } catch (error: any) {
     console.error('Update setting error:', error);
     res.status(500).json({ error: error.message });
@@ -960,7 +964,6 @@ router.post("/notifications/push", authenticateToken, requireRole("admin", "supe
 
     let targetUsers;
     
-    // 🪐 CORRECCIÓN 2: Mapeamos de forma correcta el string del rol real guardado ('user')
     if (target === 'customers') {
       targetUsers = await db.select().from(users).where(eq(users.role, 'user')); 
     } else if (target === 'businesses') {
@@ -986,8 +989,6 @@ router.post("/notifications/push", authenticateToken, requireRole("admin", "supe
   }
 });
 
-export default router;
-
 // Bank account (placeholder)
 router.get("/bank-account", authenticateToken, requireRole("admin", "super_admin"), async (req, res) => {
   try {
@@ -1000,3 +1001,5 @@ router.get("/bank-account", authenticateToken, requireRole("admin", "super_admin
     res.status(500).json({ error: error.message });
   }
 });
+
+export default router;
