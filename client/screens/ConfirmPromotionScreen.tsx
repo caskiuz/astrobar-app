@@ -56,14 +56,14 @@ export default function ConfirmPromotionScreen({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      // Primero aceptar la promoción para crear la transacción
+      // 1. Aceptar la promoción para registrar la transacción en el backend
       const response = await apiRequest("POST", `/api/promotions/${promotion.id}/accept`);
       const data = await response.json();
 
       if (data.success) {
         const transactionId = data.transaction.id;
         
-        // Crear pago con Mercado Pago
+        // 2. Crear la preferencia de pago regulada en Mercado Pago
         const paymentResponse = await apiRequest("POST", "/api/mp/create-payment", { 
           transactionId 
         });
@@ -73,18 +73,18 @@ export default function ConfirmPromotionScreen({
           throw new Error(paymentData.error || "Error al crear pago");
         }
         
-        // Abrir checkout de Mercado Pago
+        // 3. 🪐 FLUJO SANO: Enviamos al usuario a nuestra pantalla de checkout controlada
         if (paymentData.initPoint) {
-          const { Linking } = await import("react-native");
-          await Linking.openURL(paymentData.initPoint);
-          
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           
-          // Navegar a pantalla de espera de pago
-          navigation.replace("PaymentPending", {
+          // Redirigimos de forma interna a OrderPaymentScreen pasándole el link de la pasarela
+          navigation.replace("OrderPaymentScreen" as any, {
+            totalAmount: totalAmount,
+            businessId: business.id,
+            initPoint: paymentData.initPoint,
             transaction: data.transaction,
             promotion,
-            business,
+            business
           });
         }
       }
@@ -135,7 +135,7 @@ export default function ConfirmPromotionScreen({
             </ThemedText>
           </View>
           <ThemedText type="body" style={styles.timerMessage}>
-            Tenés {timeLeft} segundos para cancelar esta promoción
+            Tenés {timeLeft} segundos para confirmar esta promoción
           </ThemedText>
         </View>
 
@@ -180,8 +180,7 @@ export default function ConfirmPromotionScreen({
         <View style={[styles.infoCard, { backgroundColor: "rgba(255, 215, 0, 0.1)" }]}>
           <Feather name="info" size={20} color="#FFD700" />
           <ThemedText type="small" style={styles.infoText}>
-            Al confirmar, recibirás un código QR único para canjear en el bar.
-            El bar recibe el 100% del precio de la promoción.
+            Al confirmar, pasarás de forma segura a abonar el total mediante la pasarela integrada. Recibirás un código QR para canjear en el local.
           </ThemedText>
         </View>
 
@@ -195,7 +194,7 @@ export default function ConfirmPromotionScreen({
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              "CONFIRMAR PROMOCIÓN"
+              "CONFIRMAR Y PAGAR"
             )}
           </Button>
 
@@ -214,15 +213,9 @@ export default function ConfirmPromotionScreen({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.xl,
-  },
-  header: {
-    marginBottom: Spacing.xl,
-  },
+  container: { flex: 1 },
+  scrollContent: { padding: Spacing.xl },
+  header: { marginBottom: Spacing.xl },
   backButton: {
     width: 44,
     height: 44,
@@ -232,15 +225,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.md,
   },
-  title: {
-    color: "#FFFFFF",
-  },
-  timerCard: {
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    alignItems: "center",
-    marginBottom: Spacing.xl,
-  },
+  title: { color: "#FFFFFF" },
+  timerCard: { borderRadius: BorderRadius.xl, padding: Spacing.xl, alignItems: "center", marginBottom: Spacing.xl },
   timerCircle: {
     width: 120,
     height: 120,
@@ -250,62 +236,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.md,
   },
-  timerText: {
-    color: "#FFFFFF",
-    fontSize: 48,
-    fontWeight: "800",
-  },
-  timerLabel: {
-    color: "rgba(255,255,255,0.8)",
-  },
-  timerMessage: {
-    textAlign: "center",
-  },
-  card: {
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  cardTitle: {
-    marginBottom: Spacing.xs,
-  },
-  cardSubtitle: {
-    color: AstroBarColors.primary,
-    marginBottom: Spacing.lg,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    marginVertical: Spacing.md,
-  },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  infoCard: {
-    flexDirection: "row",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.xl,
-    gap: Spacing.sm,
-  },
-  infoText: {
-    flex: 1,
-    color: "#FFD700",
-  },
-  buttonsContainer: {
-    gap: Spacing.md,
-  },
-  confirmButton: {
-    height: 56,
-  },
-  cancelButton: {
-    height: 56,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  timerText: { color: "#FFFFFF", fontSize: 48, fontWeight: "800" },
+  timerLabel: { color: "rgba(255,255,255,0.8)" },
+  timerMessage: { textAlign: "center" },
+  card: { borderRadius: BorderRadius.xl, padding: Spacing.xl, marginBottom: Spacing.lg },
+  cardTitle: { marginBottom: Spacing.xs },
+  cardSubtitle: { color: AstroBarColors.primary, marginBottom: Spacing.lg },
+  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.1)", marginVertical: Spacing.md },
+  priceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
+  infoCard: { flexDirection: "row", padding: Spacing.md, borderRadius: BorderRadius.lg, marginBottom: Spacing.xl, gap: Spacing.sm },
+  infoText: { flex: 1, color: "#FFD700" },
+  buttonsContainer: { gap: Spacing.md },
+  confirmButton: { height: 56 },
+  cancelButton: { height: 56, borderRadius: BorderRadius.lg, borderWidth: 2, justifyContent: "center", alignItems: "center" },
 });
