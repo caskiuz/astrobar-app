@@ -237,18 +237,18 @@ export default function BusinessMenuScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 🪐 NAVIDAD SUPERIOR ULTRA UNIFICADA CIAN */}
+      {/* 🪐 CONTROL SUPERIOR REFACTORIZADO Y SANADO CON FEATHER PURO */}
       <View style={styles.topNav}>
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('BusinessPromotions')}
         >
-          <Feather name="megaphone" size={18} color="#94a3b8" />
+          <Feather name="volume-2" size={18} color="#94a3b8" />
           <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Promociones</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
-          <Feather name="restaurant" size={18} color="#00f2fe" />
+          <Feather name="book-open" size={18} color="#00f2fe" />
           <Text style={[styles.navButtonText, { color: '#00f2fe' }]}>Menú</Text>
         </TouchableOpacity>
         
@@ -256,7 +256,7 @@ export default function BusinessMenuScreen() {
           style={styles.navButton}
           onPress={() => navigation.navigate('PromotionTransactions')}
         >
-          <Feather name="list" size={18} color="#94a3b8" />
+          <Feather name="clock" size={18} color="#94a3b8" />
           <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Historial</Text>
         </TouchableOpacity>
       </View>
@@ -327,7 +327,7 @@ export default function BusinessMenuScreen() {
         }
       />
 
-      {/* 🚀 FAB CIAN NEÓN ESPACIAL COMPACTO */}
+      {/* FAB CONTAINER */}
       <TouchableOpacity
         style={[
           styles.fab, 
