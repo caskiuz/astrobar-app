@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons'; // ✅ Unificamos Feather para la barra superior
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -246,7 +246,7 @@ export default function BusinessPromotionsPanel() {
 
   return (
     <View style={styles.container}>
-      {/* 🪐 CONTROL SUPERIOR REFACTORIZADO CON FEATHER (Adiós al signo de pregunta) */}
+      {/* 🪐 CONTROL SUPERIOR PURGADO Y SANADO EN TEXTO PLANO */}
       <View style={styles.topNav}>
         <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
           <Feather name="volume-2" size={18} color="#00f2fe" />
@@ -307,7 +307,7 @@ export default function BusinessPromotionsPanel() {
         }
       />
 
-      {/* 🚀 FAB CONTAINER CORREGIDO CON RUTAS REALES DEL NAVIGATOR */}
+      {/* 🚀 FAB CONTAINER */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, styles.flashFab]}
