@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons, Feather } from '@expo/vector-icons'; // ✅ Unificamos Feather para la barra superior
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -168,7 +168,6 @@ export default function BusinessPromotionsPanel() {
           <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             {!isExpired && (
               <TouchableOpacity
-                /* 🪐 CORRECCIÓN 1: Redirección de edición adaptada a los Stacks reales */
                 onPress={() => navigation.navigate(item.type === 'flash' ? 'CreateFlashPromotion' : 'CreateCommonPromotion', { editPromotion: item })}
                 style={[styles.statusBtn, { backgroundColor: 'rgba(0, 242, 254, 0.15)', borderWidth: 1, borderColor: '#00f2fe' }]}
               >
@@ -247,20 +246,20 @@ export default function BusinessPromotionsPanel() {
 
   return (
     <View style={styles.container}>
-      {/* 🪐 CONTROL SUPERIOR ULTRA MODERNO */}
+      {/* 🪐 CONTROL SUPERIOR REFACTORIZADO CON FEATHER (Adiós al signo de pregunta) */}
       <View style={styles.topNav}>
         <TouchableOpacity style={[styles.navButton, styles.navButtonActive]} onPress={() => {}}>
-          <Ionicons name="megaphone" size={18} color="#00f2fe" />
+          <Feather name="volume-2" size={18} color="#00f2fe" />
           <Text style={[styles.navButtonText, { color: '#00f2fe' }]}>Promociones</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('BusinessMenu')}>
-          <Ionicons name="restaurant" size={18} color="#94a3b8" />
+          <Feather name="book-open" size={18} color="#94a3b8" />
           <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Menú</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('PromotionTransactions')}>
-          <Ionicons name="list" size={18} color="#94a3b8" />
+          <Feather name="clock" size={18} color="#94a3b8" />
           <Text style={[styles.navButtonText, { color: '#94a3b8' }]}>Historial</Text>
         </TouchableOpacity>
       </View>
@@ -312,7 +311,6 @@ export default function BusinessPromotionsPanel() {
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, styles.flashFab]}
-          /* 🪐 CORRECCIÓN 2: Ruta real para el formulario de ofertas Flash */
           onPress={() => navigation.navigate('CreateFlashPromotion')}
         >
           <Ionicons name="flash" size={20} color="#FFF" />
@@ -321,7 +319,6 @@ export default function BusinessPromotionsPanel() {
         
         <TouchableOpacity
           style={[styles.fab, styles.commonFab]}
-          /* 🪐 CORRECCIÓN 3: Ruta real para el formulario de ofertas Comunes */
           onPress={() => navigation.navigate('CreateCommonPromotion')}
         >
           <Ionicons name="calendar" size={20} color="#05080f" />
