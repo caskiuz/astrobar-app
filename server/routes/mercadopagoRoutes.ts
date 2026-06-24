@@ -4,6 +4,7 @@ import { mercadopagoAccounts, promotionTransactions, businesses, promotions } fr
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import { MercadoPagoConfig, Preference } from 'mercadopago'; // ✅ Mantener SDK Oficial v2
 
 const router = express.Router();
 
@@ -11,19 +12,17 @@ const router = express.Router();
 const MP_CLIENT_ID = process.env.MERCADO_PAGO_CLIENT_ID || "";
 const MP_CLIENT_SECRET = process.env.MERCADO_PAGO_CLIENT_SECRET || "";
 const MP_REDIRECT_URI = process.env.MERCADO_PAGO_REDIRECT_URI || "https://astrobar-app-production-4821.up.railway.app/api/customer-mp/callback";
-const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN || ""; // Token de la plataforma
+const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN || ""; // Token de la plataforma AstroBar
 
 // 1. OAUTH - Conectar cuenta MP del bar
 router.get("/connect", authenticateToken, requireRole("business_owner"), async (req, res) => {
   try {
-    // Obtener negocio del usuario
     const [business] = await db.select().from(businesses).where(eq(businesses.ownerId, req.user!.id)).limit(1);
     
     if (!business) {
       return res.status(404).json({ error: "Negocio no encontrado" });
     }
 
-    // URL de autorización de Mercado Pago
     const authUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&state=${business.id}&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}`;
 
     res.json({ success: true, authUrl });
@@ -42,7 +41,6 @@ router.get("/callback", async (req, res) => {
       return res.status(400).send("Código o estado faltante");
     }
 
-    // Intercambiar código por access_token
     const tokenResponse = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,7 +59,6 @@ router.get("/callback", async (req, res) => {
       throw new Error("No se pudo obtener access_token");
     }
 
-    // Guardar en base de datos
     const accountId = uuidv4();
     await db.insert(mercadopagoAccounts).values({
       id: accountId,
@@ -74,7 +71,6 @@ router.get("/callback", async (req, res) => {
       isActive: true,
     });
 
-    // Redirigir al frontend con éxito
     res.redirect(`astrobar://mp-connected?success=true`);
   } catch (error: any) {
     console.error("Error in MP callback:", error);
@@ -128,26 +124,23 @@ router.post("/disconnect", authenticateToken, requireRole("business_owner"), asy
   }
 });
 
-// 5. CREAR PAGO CON SPLIT (Usuario acepta promoción)
+// 5. CREAR PAGO CON SPLIT MARKETPLACE (Modificado con SDK Oficial v2 💎)
 router.post("/create-payment", authenticateToken, async (req, res) => {
   try {
     const { transactionId } = req.body;
 
-    // Obtener transacción
     const [transaction] = await db.select().from(promotionTransactions).where(eq(promotionTransactions.id, transactionId)).limit(1);
     
     if (!transaction) {
       return res.status(404).json({ error: "Transacción no encontrada" });
     }
 
-    // Obtener cuenta MP del bar
     const [mpAccount] = await db.select().from(mercadopagoAccounts).where(eq(mercadopagoAccounts.businessId, transaction.businessId)).limit(1);
 
     if (!mpAccount) {
       return res.status(400).json({ error: "El bar no tiene Mercado Pago conectado" });
     }
 
-    // Obtener comisión específica del bar
     const { sql } = await import("drizzle-orm");
     const commissionResult: any = await db.execute(sql`
       SELECT platform_commission
@@ -156,59 +149,48 @@ router.post("/create-payment", authenticateToken, async (req, res) => {
       LIMIT 1
     `);
     
-    // Usar comisión del bar o 30% por defecto
     let commissionRate = 0.30;
     if (commissionResult && commissionResult[0] && commissionResult[0][0] && commissionResult[0][0].platform_commission) {
       commissionRate = parseFloat(commissionResult[0][0].platform_commission);
     }
 
-    // Calcular montos (la transacción ya tiene los valores correctos)
-    const totalAmount = transaction.amountPaid; // Total que paga el usuario
-    const platformFee = transaction.platformCommission; // Comisión de la plataforma
-    const businessAmount = transaction.businessRevenue; // Lo que recibe el bar
+    const totalAmount = transaction.amountPaid; 
+    const platformFee = transaction.platformCommission; 
+    const businessAmount = transaction.businessRevenue; 
 
     console.log(`💰 Split: Usuario paga $${totalAmount/100} | Bar recibe $${businessAmount/100} | Plataforma $${platformFee/100} (${(commissionRate*100).toFixed(0)}%)`);
 
-    // Crear preferencia de pago con split
-    const preference = {
-      items: [
-        {
-          title: "Promoción AstroBar",
-          quantity: 1,
-          unit_price: totalAmount / 100, // Convertir de centavos a pesos
+    // ✅ REFACTORIZACIÓN: Usamos el inicializador oficial dinámico pasándole las credenciales del bar
+    const barClient = new MercadoPagoConfig({ accessToken: mpAccount.accessToken });
+    const mpPreference = new Preference(barClient);
+
+    const result = await mpPreference.create({
+      body: {
+        items: [
+          {
+            id: String(transaction.id),
+            title: "Promoción AstroBar",
+            quantity: 1,
+            unit_price: totalAmount / 100, // Conversión limpia a pesos decimales
+            currency_id: 'ARS'
+          },
+        ],
+        marketplace_fee: platformFee / 100, // Comisión retenida para tu cuenta de plataforma
+        external_reference: String(transaction.id),
+        notification_url: `https://astrobar-app-production-4821.up.railway.app/api/mp/webhook`,
+        back_urls: {
+          success: `astrobar://payment-success`,
+          failure: `astrobar://payment-failure`,
+          pending: `astrobar://payment-pending`,
         },
-      ],
-      marketplace_fee: platformFee / 100, // Comisión de la plataforma en pesos
-      external_reference: transaction.id,
-      notification_url: `https://astrobar-app-production-4821.up.railway.app/api/mp/webhook`,
-      back_urls: {
-        success: `astrobar://payment-success`,
-        failure: `astrobar://payment-failure`,
-        pending: `astrobar://payment-pending`,
-      },
-      auto_return: "approved",
-    };
-
-    // Crear preferencia en MP
-    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${mpAccount.accessToken}`,
-      },
-      body: JSON.stringify(preference),
+        auto_return: "approved",
+      }
     });
-
-    const data = await response.json();
-
-    if (!data.id) {
-      throw new Error("Error al crear preferencia de pago");
-    }
 
     res.json({
       success: true,
-      preferenceId: data.id,
-      initPoint: data.init_point, // URL para abrir checkout de MP
+      preferenceId: result.id,
+      initPoint: result.init_point, 
       commission: `${(commissionRate*100).toFixed(0)}%`,
       businessAmount: businessAmount / 100,
       platformFee: platformFee / 100,
@@ -227,7 +209,7 @@ router.post("/webhook", async (req, res) => {
     if (type === "payment") {
       const paymentId = data.id;
 
-      // Obtener detalles del pago
+      // Se usa el token maestro de la plataforma para auditar el pago cruzado
       const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: {
           "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
@@ -239,7 +221,6 @@ router.post("/webhook", async (req, res) => {
       if (payment.status === "approved") {
         const transactionId = payment.external_reference;
 
-        // Actualizar transacción a confirmada
         await db.update(promotionTransactions)
           .set({ status: "confirmed" })
           .where(eq(promotionTransactions.id, transactionId));
