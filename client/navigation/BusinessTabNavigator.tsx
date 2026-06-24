@@ -22,12 +22,10 @@ const Tab = createBottomTabNavigator();
 
 function ManagementStack() {
   return (
-    // 🪐 CORRECCIÓN 1: Forzamos que la ruta inicial por defecto de este Stack sea la de Promociones
     <Stack.Navigator 
       initialRouteName="BusinessPromotions" 
       screenOptions={{ headerShown: false }}
     >
-      {/* 🌌 CORRECCIÓN 2: Pasamos BusinessPromotions arriba de todo para que sea la pantalla principal al abrir Gestión */}
       <Stack.Screen name="BusinessPromotions" component={BusinessPromotionsPanel} />
       <Stack.Screen name="BusinessSettings" component={BusinessManageScreen} />
       <Stack.Screen name="BusinessMenu" component={BusinessMenuScreen} />
@@ -45,11 +43,7 @@ export default function BusinessTabNavigator() {
     <Tab.Navigator
       initialRouteName="BusinessManagement"
       screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: theme.background,
-        },
-        headerTintColor: theme.text,
+        headerShown: false,            // 🪐 CORRECCIÓN DEFINITIVA: Apagamos el header superior nativo que clava el "?"
         tabBarActiveTintColor: AstroBarColors.primary,
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
@@ -74,7 +68,6 @@ export default function BusinessTabNavigator() {
         component={ManagementStack}
         options={{
           title: "Gestión",
-          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Feather name="briefcase" size={size} color={color} />
           ),
@@ -95,7 +88,6 @@ export default function BusinessTabNavigator() {
         component={ProfileStackNavigator}
         options={{
           title: "Perfil",
-          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Feather name="user" size={size} color={color} />
           ),
