@@ -31,12 +31,25 @@ export default function OrderCartScreen() {
   const commissionAmount = Math.round(subtotal * platformCommission);
   const total = subtotal + commissionAmount;
 
+  // 🪐 LOGICA CORREGIDA POR COMPLETO: Salto limpio al flujo de Alias
   const handleCheckout = () => {
     if (items.length === 0) {
       Alert.alert('Carrito vacío', 'Agrega productos para continuar');
       return;
     }
-    navigation.navigate('OrderPayment' as never, { total, items } as never);
+
+    // Convertimos el total (que viene en centavos) a formato decimal string para la pantalla ($63250.00)
+    const formattedAmount = (total / 100).toFixed(2);
+    
+    // Armamos un nombre descriptivo para el comprobante
+    const descriptionName = items.length === 1 ? items[0].name : `Pedido de ${items.length} productos`;
+
+    // Navegación directa a PaymentScreen pasando los parámetros limpios
+    navigation.navigate('PaymentScreen' as never, {
+      userPromotionId: "order_" + Date.now(), 
+      amount: formattedAmount,                
+      promoName: descriptionName              
+    } as never);
   };
 
   if (items.length === 0) {
