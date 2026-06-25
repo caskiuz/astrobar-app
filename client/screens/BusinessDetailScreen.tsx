@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient"; // 🪐 Gradientes estelares para los botones
+import { LinearGradient } from "expo-linear-gradient"; 
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -57,7 +57,6 @@ export default function BusinessDetailScreen() {
         const data = await response.json();
         
         if (data.success && data.business) {
-          // Sanitizamos la descripción directo desde la carga para corregir la ortografía rota del backend
           let rawDesc = data.business.description || '';
           if (rawDesc.toLowerCase().includes('amburgueza')) {
             rawDesc = rawDesc.replace(/amburgueza/i, 'Hamburguesas y Combos Premium');
@@ -84,11 +83,12 @@ export default function BusinessDetailScreen() {
             featured: data.business.isFeatured || false,
           };
           
+          // 🪐 ADAPTACIÓN CORREGIDA: Dejamos el precio nativo en centavos para que calce con ProductCard sin romperse
           const adaptedProducts: Product[] = (data.business.products || []).map((p: any) => ({
             id: p.id,
             name: p.name,
             description: p.description || '',
-            price: (p.price || 0) / 100,
+            price: p.price || 0, 
             image: p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
             category: p.category || 'General',
             isAvailable: p.isAvailable === true || p.isAvailable === 1,
@@ -255,10 +255,7 @@ export default function BusinessDetailScreen() {
               </View>
             </View>
 
-            {/* 🌌 CONTENEDOR DE BOTONES CON DISEÑO PREMIUM NEÓN MULTICAPA */}
             <View style={styles.actionButtonsContainer}>
-              
-              {/* ⚡ BOTÓN RADIANTE: VER PROMOCIONES (AMARILLO ELÉCTRICO) */}
               <Pressable
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -280,7 +277,6 @@ export default function BusinessDetailScreen() {
                 </LinearGradient>
               </Pressable>
 
-              {/* 🪐 BOTÓN ULTRA: VER MENÚ COMPLETO (CIAN / PÚRPURA DEEP SPACE) */}
               <Pressable
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -301,7 +297,6 @@ export default function BusinessDetailScreen() {
                   <Feather name="chevron-right" size={18} color="#00f2fe" />
                 </LinearGradient>
               </Pressable>
-
             </View>
           </>
         ) : null}
@@ -349,7 +344,6 @@ const getStyles = (theme: any) => StyleSheet.create({
   ratingRow: { flexDirection: "row", alignItems: "center", marginTop: 4, gap: 4 },
   rating: { fontWeight: "800", marginRight: 4, color: '#FFF', fontSize: 14 },
   badgeRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.sm },
-  
   infoCard: {
     marginHorizontal: Spacing.lg,
     padding: Spacing.lg,
@@ -363,7 +357,6 @@ const getStyles = (theme: any) => StyleSheet.create({
   infoRow: { flexDirection: "row", alignItems: "center", marginTop: Spacing.md, flexWrap: "wrap" },
   infoCardMetaText: { color: '#94a3b8', marginLeft: Spacing.sm, fontWeight: '600' },
   dividerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(0, 242, 254, 0.4)', marginHorizontal: Spacing.sm },
-  
   contactRow: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.lg },
   contactButtonCall: {
     flex: 1,
@@ -389,8 +382,6 @@ const getStyles = (theme: any) => StyleSheet.create({
     borderColor: '#25D366'
   },
   contactButtonWAText: { color: "#FFFFFF", marginLeft: Spacing.xs, fontWeight: '700' },
-
-  // 🪐 REDISEÑO ESTRUCTURAL: ALINEACIÓN MILIMÉTRICA Y REFLEJO NEÓN PREMIUM
   actionButtonsContainer: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.md,
@@ -406,7 +397,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 58,                  // Altura estricta para fijar centro exacto
+    height: 58, 
     borderWidth: 1.5,
     borderRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.xl,
@@ -417,12 +408,12 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   menuButtonTextCyber: {
     fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
-    fontWeight: '900',           // Tipografía pesada cyberpunk de impacto
+    fontWeight: '900', 
     fontSize: 15,
     letterSpacing: 0.6,
     flex: 1,
     textAlign: 'center',
-    includeFontPadding: false,   // Clave fundamental: limpia el desvío vertical en Android 🚀
-    textAlignVertical: 'center', // Amarra el texto al centro exacto del eje Y
+    includeFontPadding: false, 
+    textAlignVertical: 'center', 
   },
 });
