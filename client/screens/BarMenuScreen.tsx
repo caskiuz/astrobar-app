@@ -95,6 +95,10 @@ export default function BarMenuScreen() {
           clearCart();
           addItemToCart(product);
         }
+      } else {
+        // Soporte básico para alertas mobile si cambia de comercio
+        clearCart();
+        addItemToCart(product);
       }
       return;
     }
@@ -104,11 +108,14 @@ export default function BarMenuScreen() {
 
   const addItemToCart = (product: Product) => {
     try {
+      // 🪐 Si el backend ya viene en pesos, lo pasamos a centavos multiplicando por 100 de forma segura
+      const finalPriceInCentavos = Math.round(product.price * 100);
+
       addItem({
         id: product.id,
         type: 'product',
         name: product.name,
-        price: Math.round(product.price * 100),
+        price: finalPriceInCentavos,
         quantity: 1,
         businessId: businessId,
         businessName: menuData?.business.name || '',
@@ -228,8 +235,9 @@ export default function BarMenuScreen() {
                 </ThemedText>
               </View>
               <View style={styles.priceContainer}>
+                {/* 🪐 CORRECCIÓN VISUAL: Mostramos el precio puro tal cual viene de este endpoint de menú */}
                 <ThemedText type="h3" style={{ color: AstroBarColors.primary }}>
-                  ${(product.price / 100).toFixed(2)}
+                  ${product.price.toFixed(2)}
                 </ThemedText>
                 {!product.isAvailable && (
                   <ThemedText type="small" style={{ color: AstroBarColors.error, marginTop: 4 }}>
@@ -275,100 +283,20 @@ export default function BarMenuScreen() {
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cartButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  cartBadge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    backgroundColor: AstroBarColors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
-  },
-  categoriesScroll: {
-    maxHeight: 50,
-    marginBottom: Spacing.md,
-  },
-  categoryChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    marginRight: Spacing.sm,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-  },
-  productCard: {
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
-    overflow: "hidden",
-  },
-  productImage: {
-    width: "100%",
-    height: 150,
-    resizeMode: "cover",
-  },
-  productInfo: {
-    flexDirection: "row",
-    padding: Spacing.md,
-  },
-  priceContainer: {
-    alignItems: "flex-end",
-    justifyContent: "center",
-    marginLeft: Spacing.md,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: Spacing.sm,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.xl * 2,
-  },
-  toast: {
-    position: "absolute",
-    bottom: 100,
-    left: 20,
-    right: 20,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    alignItems: "center",
-    ...Shadows.lg,
-  },
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
+  backButton: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
+  cartButton: { width: 44, height: 44, borderRadius: 22, justifyContent: "center", alignItems: "center", position: "relative" },
+  cartBadge: { position: "absolute", top: -4, right: -4, backgroundColor: AstroBarColors.error, borderRadius: 10, minWidth: 20, height: 20, justifyContent: "center", alignItems: "center", paddingHorizontal: 4 },
+  categoriesScroll: { maxHeight: 50, marginBottom: Spacing.md },
+  categoryChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.lg, marginRight: Spacing.sm },
+  scrollContent: { paddingHorizontal: Spacing.lg },
+  productCard: { borderRadius: BorderRadius.lg, marginBottom: Spacing.md, overflow: "hidden" },
+  productImage: { width: "100%", height: 150, resizeMode: "cover" },
+  productInfo: { flexDirection: "row", padding: Spacing.md },
+  priceContainer: { alignItems: "flex-end", justifyContent: "center", marginLeft: Spacing.md },
+  addButton: { width: 36, height: 36, borderRadius: 18, justifyContent: "center", alignItems: "center", marginTop: Spacing.sm },
+  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.xl * 2 },
+  toast: { position: "absolute", bottom: 100, left: 20, right: 20, padding: Spacing.md, borderRadius: BorderRadius.lg, alignItems: "center", ...Shadows.lg },
 });
