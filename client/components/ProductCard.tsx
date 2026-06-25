@@ -42,11 +42,13 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
+  // 🪐 FORMATEO CORREGIDO: Dividimos por 100 para pasar de centavos a pesos con dos decimales
   const formatPrice = () => {
+    const priceInPesos = product.price / 100;
     if (product.isWeightBased) {
-      return `$${product.price}/${product.unit}`;
+      return `$${priceInPesos.toFixed(2)}/${product.unit}`;
     }
-    return `$${product.price}`;
+    return `$${priceInPesos.toFixed(2)}`;
   };
 
   return (
