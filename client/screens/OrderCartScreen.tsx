@@ -22,34 +22,28 @@ export default function OrderCartScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { items, removeItem, updateQuantity, updateNotes, getTotal, clearCart } = useUnifiedCart();
 
-  const [platformCommission] = useState(0.15); // 15% por defecto, se obtiene del backend
+  const [platformCommission] = useState(0.15); // 15% por defecto
 
   const subtotal = getTotal();
   const commissionAmount = Math.round(subtotal * platformCommission);
   const total = subtotal + commissionAmount;
 
-  // 🪐 LOGICA CORREGIDA POR COMPLETO: Salto limpio al flujo de Alias
+  // 🪐 ENRUTAMIENTO PREMIUM NATIVO ACTUALIZADO
   const handleCheckout = () => {
     if (items.length === 0) {
       Alert.alert('Carrito vacío', 'Agrega productos para continuar');
       return;
     }
 
-    // Convertimos el total (que viene en centavos) a formato decimal string para la pantalla ($63250.00)
-    const formattedAmount = (total / 100).toFixed(2);
-    
-    // Armamos un nombre descriptivo para el comprobante
-    const descriptionName = items.length === 1 ? items[0].name : `Pedido de ${items.length} productos`;
-
-    // Navegación directa a PaymentScreen pasando los parámetros limpios
-    navigation.navigate('PaymentScreen' as never, {
-      userPromotionId: "order_" + Date.now(), 
-      amount: formattedAmount,                
-      promoName: descriptionName              
-    } as never);
+    // Volvemos al flujo original automatizado usando el nombre real de tu pasarela en el Stack
+    // Le pasamos el 'total' y los 'items' tal cual los espera tu backend para generar el initPoint
+    navigation.navigate('OrderPayment', { 
+      total, 
+      items 
+    });
   };
 
   if (items.length === 0) {
@@ -191,98 +185,21 @@ export default function OrderCartScreen() {
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-  },
-  itemCard: {
-    flexDirection: 'row',
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
-    overflow: 'hidden',
-    padding: Spacing.md,
-  },
-  itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BorderRadius.md,
-    marginRight: Spacing.md,
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemActions: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginLeft: Spacing.sm,
-  },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  quantityButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notesInput: {
-    marginTop: Spacing.sm,
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    fontSize: 12,
-    minHeight: 40,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  divider: {
-    height: 1,
-    marginVertical: Spacing.sm,
-  },
-  checkoutButton: {
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    marginTop: Spacing.md,
-  },
-  button: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-  },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
+  backButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xl },
+  scrollContent: { paddingHorizontal: Spacing.lg },
+  itemCard: { flexDirection: 'row', borderRadius: BorderRadius.lg, marginBottom: Spacing.md, overflow: 'hidden', padding: Spacing.md },
+  itemImage: { width: 80, height: 80, borderRadius: BorderRadius.md, marginRight: Spacing.md },
+  itemInfo: { flex: 1 },
+  itemActions: { alignItems: 'flex-end', justifyContent: 'space-between', marginLeft: Spacing.sm },
+  quantityContainer: { flexDirection: 'row', alignItems: 'center', marginTop: Spacing.sm },
+  quantityButton: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  notesInput: { marginTop: Spacing.sm, padding: Spacing.sm, borderRadius: BorderRadius.md, borderWidth: 1, fontSize: 12, minHeight: 40 },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.sm },
+  divider: { height: 1, marginVertical: Spacing.sm },
+  checkoutButton: { paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, alignItems: 'center', marginTop: Spacing.md },
+  button: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg },
 });
